@@ -6,8 +6,8 @@ river beds using sonar signals to solve the arising full-waveform inversion
 
 ## Tasks
 
- [ ] Creating snapshots and gifs of the signal propagation.
- [ ] Testing with different physical mesh sizes.
- [ ] Creating a demo for the inversion problem
- [ ] Cehcking literature for the phzsical parameters of the signals used in sonars.
+ - [ ] Creating snapshots and gifs of the signal propagation.
+ - [ ] Testing with different physical mesh sizes. (Compare the snapshots)
+ - [ ] Creating a demo for the inversion problem
+ - [ ] Checking literature for the physical parameters of the signals used in sonars.
 
