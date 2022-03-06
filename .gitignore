@@ -128,4 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-water_tank/*.bin
+water_tank/snapshots
