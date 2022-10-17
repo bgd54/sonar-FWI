@@ -118,6 +118,7 @@ def objDistance(receiver, timestep: float,
     prominences = peak_prominences(x, peaks)[0]
     first_peak = cut + peaks[
         (prominences - np.average(prominences)) > np.std(prominences)][0]
+    #  first_peak = cut + peaks[[x[p] > 1.49e-5 for p in peaks]][0]
     distance = (((first_peak * timestep) / 2) * v_env)
     return distance, x[first_peak - cut]
 

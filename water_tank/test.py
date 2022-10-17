@@ -12,7 +12,7 @@ from examples.seismic import (Model, Receiver, RickerSource, TimeAxis,
 
 from utils import srcPositions, setup_domain, run_positions_angles2, run_positions_angles, calculate_coordinates
 
-from plotting import compare_velocity_to_measure
+from plotting import compare_velocity_to_measure, plot_signal
 
 from scipy.signal import find_peaks, peak_prominences
 
@@ -27,6 +27,14 @@ def init_circle(v: npt.NDArray, ox: int, oy: int, r: int, v_inner: float,
         ry = oy - j
         if (rx**2 + ry**2) > r**2:
             v[i, j] = v_wall
+
+
+def init_bottom(v: npt.NDArray, bottom_star: int, v_inner: float,
+                v_wall: float):
+    # r in index
+    # ox, oy in index
+    v.fill(v_inner)
+    v[:, bottom_star:] = v_wall
 
 
 def source_depth_m(num_sources: int, source_distance_m: float) -> float:
@@ -57,10 +65,14 @@ def main():
     # Define a velocity profile. The velocity is in km/s
     v = np.full(shape, v_water, dtype=np.float32)
 
-    init_circle(
-        v, 300, source_depth_idx(num_sources, source_distance_m, spacing[1]),
-        nz - 10 - source_depth_idx(num_sources, source_distance_m, spacing[1]),
-        v_water, v_glass)
+    source_cy = source_depth_idx(num_sources, source_distance_m, spacing[1])
+    river_R = nz - 10 - source_depth_idx(num_sources, source_distance_m,
+                                         spacing[1])
+    river_R_m = river_R * spacing[1]
+
+
+    init_circle(v, 300, source_cy, river_R, v_water, v_glass)
+    #  init_bottom(v, river_R, v_water, v_glass)
 
     model = Model(vp=v,
                   origin=origin,
@@ -69,6 +81,7 @@ def main():
                   space_order=2,
                   nbl=nb,
                   bcs="damp")
+    print(f'source: ({300*spacing[0]},{source_cy*spacing[1]}), R: {river_R_m}, dt:{model.critical_dt}')
     src, rec, time_range, center_pos = setup_domain(
         model,
         tn=5,
@@ -77,10 +90,9 @@ def main():
         posx=.5,
         posy=0.0,  # hack for source_depth_m / domain_size
         v_water=v_water)
-    print(model.critical_dt)
-    plot_velocity(model,
-                  source=src.coordinates.data,
-                  receiver=rec.coordinates.data)
+    #  plot_velocity(model,
+    #                source=src.coordinates.data,
+    #                receiver=rec.coordinates.data)
     # create the operator
     u = TimeFunction(name="u", grid=model.grid, time_order=2, space_order=2)
     # Set symbolics of the operator, source and receivers:
@@ -90,11 +102,13 @@ def main():
                           expr=src * model.critical_dt**2 / model.m)
     rec_term = rec.interpolate(expr=u)
 
-    op = Operator([stencil] + src_term + rec_term, subs=model.spacing_map)
+    op = Operator([stencil] + src_term + rec_term,
+                  subs=model.spacing_map,
+                  openmp=True)
 
     # run on angles
 
-    angles = np.arange(5, 31)
+    angles = np.arange(5, 176)
     results = run_positions_angles2(model,
                                     src,
                                     rec,
@@ -106,7 +120,7 @@ def main():
                                     posx=[0.5],
                                     posy=[0.0],
                                     angle=angles)
-    print(results)
+    print(results[0:2])
 
     #  results2 = run_positions_angles(model, v_water, posx=[0.5], angle=np.arange(5, 11))
     #  print(np.any(results[2] - results2[2]))
@@ -128,16 +142,28 @@ def main():
                                 res2[0],
                                 source=src.coordinates.data,
                                 receiver=rec.coordinates.data)
-    x = results[2][0, :, 64]
-    peaks, _ = find_peaks(x)
-    prominences = peak_prominences(x, peaks)[0]
-    first_peak = peaks[(prominences -
-                        np.average(prominences)) > np.std(prominences)]
-    distance = [((p * model.critical_dt) / 2) * v_water for p in first_peak]
-    plt.plot(x)
-    plt.plot(peaks, x[peaks], 'ro')
-    plt.plot(first_peak, x[first_peak], 'bx')
-    plt.show()
+    #  x = results[2][0, :, 64]
+    #  peaks, _ = find_peaks(x)
+    #  prominences = peak_prominences(x, peaks)[0]
+    #  first_peak = peaks[(prominences -
+    #                      np.average(prominences)) > np.std(prominences)]
+    #  distance = [((p * model.critical_dt) / 2) * v_water for p in first_peak]
+
+    #  fig, ax = plt.subplots(2)
+    #  ax[1].plot(x)
+    #  ax[1].plot(peaks, x[peaks], 'ro')
+    #  ax[1].plot(first_peak, x[first_peak], 'bx')
+    #  ax[0].plot(first_peak, distance)
+    #  ax[0].plot(first_peak[[0, -1]], [river_R_m] * 2)
+    #  plt.show()
+    return 
+    for i, receiver_data in enumerate(results[2]):
+        fig, ax = plt.subplots()
+        plot_signal(np.average(receiver_data, axis=1), model.critical_dt,
+                    v_water, ax)
+        fig.suptitle(f'alpha={i + angles[0]}')
+        plt.savefig(f'alpha{i+angles[0]}.pdf', dpi=300, bbox_inches='tight')
+        plt.close(fig)
 
 
 if __name__ == "__main__":

@@ -44,11 +44,7 @@ def compare_velocity_to_measure(model,
 
     # Plot receiver points, if provided
     if source is not None:
-        plt.scatter(source[:, 0],
-                    source[:, 1],
-                    s=25,
-                    c='red',
-                    marker='o')
+        plt.scatter(source[:, 0], source[:, 1], s=25, c='red', marker='o')
     plt.scatter(result_coords[:, 0],
                 result_coords[:, 1],
                 s=25,
@@ -56,8 +52,10 @@ def compare_velocity_to_measure(model,
                 marker='o')
 
     # Ensure axis limits
-    plt.xlim(model.origin[0] - domain_size[0]*0.1, model.origin[0] + domain_size[0]*1.1)
-    plt.ylim(model.origin[1] + domain_size[1]*1.1, model.origin[1] - domain_size[1]*0.1)
+    plt.xlim(model.origin[0] - domain_size[0] * 0.1,
+             model.origin[0] + domain_size[0] * 1.1)
+    plt.ylim(model.origin[1] + domain_size[1] * 1.1,
+             model.origin[1] - domain_size[1] * 0.1)
 
     # Create aligned colorbar on the right
     if colorbar:
@@ -69,31 +67,52 @@ def compare_velocity_to_measure(model,
     plt.show()
 
 
-def plot_shotrecord2(recording, cutoff = 600):
+def plot_shotrecord2(recording, cutoff=600):
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     X = np.arange(recording.shape[1])
     Y = np.arange(recording.shape[0] - cutoff)
     X, Y = np.meshgrid(X, Y)
 
     # Plot the surface.
-    surf = ax.plot_surface(X, Y, recording[cutoff:], cmap=cm.coolwarm,
-                           linewidth=0, antialiased=False)
+    surf = ax.plot_surface(X,
+                           Y,
+                           recording[cutoff:],
+                           cmap=cm.coolwarm,
+                           linewidth=0,
+                           antialiased=False)
 
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     plt.show()
 
-def peaks(receiver, timestep:float, v_env: float, cut:int = 600) -> tuple[np.typing.NDArray, np.typing.NDArray]:
+
+def peaks(receiver,
+          timestep: float,
+          v_env: float,
+          cut: int = 600) -> tuple[np.typing.NDArray, np.typing.NDArray]:
     x = receiver[cut:]
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
     return peaks + 600, prominences
 
-def dist_to_peak(peak: int, timestep:float, v_env:float) -> float:
+
+def dist_to_peak(peak: int, timestep: float, v_env: float) -> float:
     return (peak * timestep) / 2000 * v_env
 
-def first_peak(peaks:tuple[np.typing.NDArray, np.typing.NDArray]) -> int:
-    first_peak = peaks[0][(peaks[1] - np.average(peaks[1])) > np.std(peaks[1])][0]
+
+def first_peak(peaks: tuple[np.typing.NDArray, np.typing.NDArray]) -> int:
+    first_peak = peaks[0][(peaks[1] -
+                           np.average(peaks[1])) > np.std(peaks[1])][0]
     return first_peak
 
+
+def plot_signal(sig, timestep, v, ax, cut=600):
+    x = sig[cut:]
+    peaks, _ = find_peaks(x)
+    prominences = peak_prominences(x, peaks)[0]
+    first_peak = cut + peaks[
+        (prominences - np.average(prominences)) > np.std(prominences)]
+    ax.plot(sig)
+    ax.plot(cut + peaks, sig[cut + peaks], 'ro')
+    ax.plot(first_peak, sig[first_peak], 'bx')
