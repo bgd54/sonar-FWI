@@ -1,13 +1,16 @@
 import math
-import os
 import time
-from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
-from devito import Eq, Operator, TimeFunction, solve
-from examples.seismic import Model, Receiver, WaveletSource, TimeAxis
+from examples.seismic import Receiver, WaveletSource, TimeAxis
 from scipy.signal import find_peaks, peak_prominences
+from enum import Enum
+
+
+class Bottom(str, Enum):
+    flat = "flat"
+    ellipsis = "ellipsis"
 
 
 def find_exp(number: float) -> int:
@@ -76,7 +79,7 @@ def src_positions_in_domain(
         cy = (ns - 1) / 2 * source_distance
     else:
         cy = domain_size[1] * posy
-    return src_positions_in_domain(cx, cy, angle, ns, source_distance), (cx, cy)
+    return src_positions(cx, cy, angle, ns, source_distance), (cx, cy)
 
 
 class SineSource(WaveletSource):
@@ -143,7 +146,7 @@ def setup_domain(
         coordinates=src.coordinates.data,
     )
 
-    return src, rec, src_center, wavelength
+    return src, rec, time_range, src_center, sdist
 
 
 def object_distance(
