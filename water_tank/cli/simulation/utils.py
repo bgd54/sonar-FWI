@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 from devito import Eq, Operator, TimeFunction, solve
-from examples.seismic import (Model, Receiver, WaveletSource, TimeAxis)
+from examples.seismic import Model, Receiver, WaveletSource, TimeAxis
 from scipy.signal import find_peaks, peak_prominences
 
 
@@ -22,8 +22,9 @@ def find_exp(number: float) -> int:
     return math.floor(math.log10(number))
 
 
-def src_positions(cx: float, cy: float, alpha: float, ns: int,
-                  sdist: float) -> np.typing.NDArray:
+def src_positions(
+    cx: float, cy: float, alpha: float, ns: int, sdist: float
+) -> np.typing.NDArray:
     """
     Create source positions.
 
@@ -43,18 +44,19 @@ def src_positions(cx: float, cy: float, alpha: float, ns: int,
     dy = sdist * math.cos(math.pi / 180 * alpha)
 
     res = np.zeros((ns, 2))
-    res[:, 0] = np.linspace(cx - dx * (ns - 1) / 2,
-                            cx + dx * (ns - 1) / 2,
-                            num=ns)
-    res[:, 1] = np.linspace(cy - dy * (ns - 1) / 2,
-                            cy + dy * (ns - 1) / 2,
-                            num=ns)
+    res[:, 0] = np.linspace(cx - dx * (ns - 1) / 2, cx + dx * (ns - 1) / 2, num=ns)
+    res[:, 1] = np.linspace(cy - dy * (ns - 1) / 2, cy + dy * (ns - 1) / 2, num=ns)
     return res
 
 
-def src_positions_in_domain(domain_size: tuple[np.float64, np.float64], posx: float = 0.5,
-                            posy: float = 0.0, source_distance: float = .1, ns: int = 128,
-                            angle: float = 90) -> tuple[np.typing.NDArray, tuple[float, float]]:
+def src_positions_in_domain(
+    domain_size: tuple[np.float64, np.float64],
+    posx: float = 0.5,
+    posy: float = 0.0,
+    source_distance: float = 0.1,
+    ns: int = 128,
+    angle: float = 90,
+) -> tuple[np.typing.NDArray, tuple[float, float]]:
     """
     Create the source positions in the domain.
 
@@ -85,18 +87,20 @@ class SineSource(WaveletSource):
     Returns:
         The source term that will be injected into the computational domain.
     """
+
     @property
     def wavelet(self):
         t0 = self.t0 or 1 / self.f0
         a = self.a or 1
-        r = (np.pi * self.f0 * (self.time_values - t0))
+        r = np.pi * self.f0 * (self.time_values - t0)
         wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
-        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0):] = 0
+        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
         return wave
 
 
-def setup_domain(model, tn=0.05, ns=128, f0=5000, posx=0.5, posy=0.0,
-                 angle=90, v_env=1.4967):
+def setup_domain(
+    model, tn=0.05, ns=128, f0=5000, posx=0.5, posy=0.0, angle=90, v_env=1.4967
+):
     """
     Setup the domain.
 
@@ -120,19 +124,31 @@ def setup_domain(model, tn=0.05, ns=128, f0=5000, posx=0.5, posy=0.0,
     wavelength = v_env / f0
     sdist = wavelength / 8
     sangle = angle
-    src_positions, src_center = src_positions_in_domain(model.domain_size, posx=posx, posy=posy,
-                                                        source_distance=sdist, ns=ns, angle=sangle)
+    src_positions, src_center = src_positions_in_domain(
+        model.domain_size,
+        posx=posx,
+        posy=posy,
+        source_distance=sdist,
+        ns=ns,
+        angle=sangle,
+    )
 
-    src = SineSource(name='src', grid=model.grid, f0=f0, time_range=time_range)
+    src = SineSource(name="src", grid=model.grid, f0=f0, time_range=time_range)
     src.coordinates.data[:] = src_positions
-    rec = Receiver(name='rec', grid=model.grid, time_range=time_range,
-                   npoint=nr, coordinates=src.coordinates.data)
+    rec = Receiver(
+        name="rec",
+        grid=model.grid,
+        time_range=time_range,
+        npoint=nr,
+        coordinates=src.coordinates.data,
+    )
 
     return src, rec, src_center, wavelength
 
 
-def object_distance(receiver, timestep: float, v_env: float,
-                    cut: int = 600) -> tuple[float, float]:
+def object_distance(
+    receiver, timestep: float, v_env: float, cut: int = 600
+) -> tuple[float, float]:
     """
     Calculate the distance of the object from the receiver.
 
@@ -147,15 +163,27 @@ def object_distance(receiver, timestep: float, v_env: float,
     x = receiver[cut:]
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
-    first_peak = cut + peaks[
-        (prominences - np.average(prominences)) > np.std(prominences)][0]
+    first_peak = (
+        cut + peaks[(prominences - np.average(prominences)) > np.std(prominences)][0]
+    )
     #  first_peak = cut + peaks[[x[p] > 1.49e-5 for p in peaks]][0]
-    distance = (((first_peak * timestep) / 2) * v_env)
+    distance = ((first_peak * timestep) / 2) * v_env
     return distance, x[first_peak - cut]
 
 
-def run_positions_angles(model, src, rec, op, u, v_env, source_distance, time_range,
-                         posx=[0.5], posy=[0.0], angle=[90]):
+def run_positions_angles(
+    model,
+    src,
+    rec,
+    op,
+    u,
+    v_env,
+    source_distance,
+    time_range,
+    posx=[0.5],
+    posy=[0.0],
+    angle=[90],
+):
     """
     Run the simulation for different source positions and angles.
 
@@ -175,7 +203,7 @@ def run_positions_angles(model, src, rec, op, u, v_env, source_distance, time_ra
     Returns:
         distances (list[float]): Distances of the object from the receiver.
         amplitudes (list[float]): Amplitudes of the signal at the receiver.
-        res 
+        res
     """
     if np.size(posx) != np.size(posy):
         print("error, posx and posy arrays must be same length")
@@ -188,12 +216,14 @@ def run_positions_angles(model, src, rec, op, u, v_env, source_distance, time_ra
         for j, alpha in enumerate(angle):
             start = time.time()
 
-            pos, _ = src_positions_in_domain(model.domain_size,
-                                             posx=px,
-                                             posy=py,
-                                             angle=alpha,
-                                             ns=src.coordinates.data.shape[0],
-                                             source_distance=source_distance)
+            pos, _ = src_positions_in_domain(
+                model.domain_size,
+                posx=px,
+                posy=py,
+                angle=alpha,
+                ns=src.coordinates.data.shape[0],
+                source_distance=source_distance,
+            )
             src.coordinates.data[:] = pos[:]
             rec.coordinates.data[:] = pos[:]
             u.data.fill(0)
@@ -201,16 +231,18 @@ def run_positions_angles(model, src, rec, op, u, v_env, source_distance, time_ra
             # Run the operator for `(nt-2)` time steps:
             op(time=time_range.num - 2, dt=model.critical_dt)
             res[j] = rec.data
-            result = object_distance(np.average(rec.data, axis=1),
-                                     model.critical_dt, v_env)
+            result = object_distance(
+                np.average(rec.data, axis=1), model.critical_dt, v_env
+            )
             distances[i, j] = result[0]
             amplitudes[i, j] = result[1]
             print(f"Iteration took: {time.time() - start}")
     return distances, amplitudes, res
 
 
-def calculate_coordinates(domain_size, rec_pos, angle=[65], distance=[26],
-                          amplitude=[2.3169e-09]):
+def calculate_coordinates(
+    domain_size, rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]
+):
     """
     Calculate the coordinates of the object.
 
@@ -232,8 +264,6 @@ def calculate_coordinates(domain_size, rec_pos, angle=[65], distance=[26],
         for j, alpha in enumerate(angle):
             sx = pos[0]
             sy = pos[1]
-            coordinates[i, j,
-                    0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
-            coordinates[i, j,
-                    1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
+            coordinates[i, j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
+            coordinates[i, j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
     return coordinates
