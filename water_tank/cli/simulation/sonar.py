@@ -37,11 +37,13 @@ class Sonar:
         exp = utils.find_exp(self.v_env / self.f0)
         self.size_x = (int)(size_x / 10**exp)
         self.size_y = (int)(size_y / 10**exp)
+        shape = (self.size_x, self.size_y)
         self.posx = posx
         self.posy = posy
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
-        v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
+        v = np.empty(shape, dtype=np.float32)
+        v[:, :] = self.v_env
         a = (int)((self.size_x - 1) / 2)
         b = (int)((self.size_y - 1) / 2)
         for i in range(self.size_x):
@@ -50,13 +52,13 @@ class Sonar:
                     v[i, j] = 3.24
         v[:, :b] = self.v_env
         self.model = Model(
+            vp=v,
             origin=origin,
             spacing=spacing,
-            shape=(size_x, size_y),
+            shape=shape,
             space_order=2,
             nbl=10,
             bcs="damp",
-            vp=v,
         )
         (
             self.src,
@@ -140,7 +142,6 @@ class Sonar:
         res2 = utils.calculate_coordinates(
             self.model.domain_size,
             rec_pos=[self.center_pos],
-            sdist=self.sdist,
             angle=angles,
             distance=results[0],
             amplitude=results[1],
@@ -149,6 +150,6 @@ class Sonar:
         plotting.compare_velocity_to_measure(
             self.model,
             res2[0],
-            source=self.src.coordinates.data[0],
-            receiver=self.rec.coordinates.data[0],
+            source=self.src.coordinates.data,
+            receiver=self.rec.coordinates.data,
         )
