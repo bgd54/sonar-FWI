@@ -23,8 +23,8 @@ def run(
     bottom: Bottom = Bottom.ellipsis,
 ):
     """Initialize the sonar class."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy)
-    s.run_position_angles(5, 175, 5)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
+    s.run_position_angles(5, 10, 5)
 
 
 @app.callback()

@@ -11,6 +11,7 @@ from enum import Enum
 class Bottom(str, Enum):
     flat = "flat"
     ellipsis = "ellipsis"
+    circle = "circle"
 
 
 def find_exp(number: float) -> int:

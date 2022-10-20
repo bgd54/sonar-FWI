@@ -1,9 +1,11 @@
 """This module provides the sonar class for the water tank project."""
 import numpy as np
-
-from simulation import utils, plotting
+import numpy.typing as npt
+import itertools
 from devito import Eq, Operator, TimeFunction, solve
 from examples.seismic import Model
+
+from simulation import plotting, utils
 
 
 class Sonar:
@@ -19,6 +21,7 @@ class Sonar:
         ns: int,
         posx: float,
         posy: float,
+        bottom: utils.Bottom
     ) -> None:
         """Initialize the sonar class.
 
@@ -39,20 +42,11 @@ class Sonar:
         self.size_y = (int)(size_y / 10**exp)
         shape = (self.size_x, self.size_y)
         self.posx = posx
-        self.posy = posy
+        self.posy = posy if posy != 0.0 else ((ns - 1) / 2 * v_env / f0 / 8) / size_y
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
-        v = np.empty(shape, dtype=np.float32)
-        v[:, :] = self.v_env
-        a = (int)((self.size_x - 1) / 2)
-        b = (int)((self.size_y - 1) / 2)
-        for i in range(self.size_x):
-            for j in range(self.size_y):
-                if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
-                    v[i, j] = 3.24
-        v[:, :b] = self.v_env
         self.model = Model(
-            vp=v,
+            vp=self.set_bottom(bottom),
             origin=origin,
             spacing=spacing,
             shape=shape,
@@ -90,14 +84,14 @@ class Sonar:
             [stencil] + src_term + rec_term, subs=self.model.spacing_map, openmp=True
         )
 
-    def set_bottom(self, bottom: utils.Bottom) -> None:
+    def set_bottom(self, bottom: utils.Bottom, v_wall: float = 3.24) -> npt.NDArray:
         """Set the bottom of the water tank.
 
         Args:
             bottom (Enum): Bottom of the water tank.
         """
+        v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
         if bottom == utils.Bottom.ellipsis:
-            v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
             nx = self.model.shape[0]
             nz = self.model.shape[1]
             a = (int)((nx - 1) / 2)
@@ -105,9 +99,22 @@ class Sonar:
             for i in range(nx):
                 for j in range(nz):
                     if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
-                        v[i, j] = 3.24
+                        v[i, j] = v_wall
             v[:, :b] = self.v_env
-            self.model.update("vp", v)
+        elif bottom == utils.Bottom.flat:
+            y_wall = max(int(self.size_y *0.8), self.size_y - 50)
+            v[:, y_wall:] = v_wall
+        elif bottom == utils.Bottom.circle:
+            ox = int(self.posx * self.size_x)
+            oy = int(self.posy * self.size_y)
+            r = self.size_y - oy - 10
+            for i, j in itertools.product(range(v.shape[0]), range(v.shape[1])):
+                rx = ox - i
+                ry = oy - j
+                if (rx**2 + ry**2) < r**2:
+                    v[i, j] = v_wall
+        return v
+
 
     def run_position_angles(
         self,
