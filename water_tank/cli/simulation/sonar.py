@@ -6,6 +6,7 @@ from devito import Eq, Operator, TimeFunction, solve
 from examples.seismic import Model
 
 from simulation import plotting, utils
+import time
 
 
 class Sonar:
@@ -108,11 +109,10 @@ class Sonar:
             ox = int(self.posx * self.size_x)
             oy = int(self.posy * self.size_y)
             r = self.size_y - oy - 10
-            for i, j in itertools.product(range(v.shape[0]), range(v.shape[1])):
-                rx = ox - i
-                ry = oy - j
-                if (rx**2 + ry**2) < r**2:
-                    v[i, j] = v_wall
+            x = np.arange(0, v.shape[0])
+            y = np.arange(0, v.shape[1])
+            mask = (y[np.newaxis,:]-oy)**2 + (x[:,np.newaxis]-ox)**2 < r**2
+            v[mask] = v_wall
         return v
 
 
