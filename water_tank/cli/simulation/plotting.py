@@ -1,11 +1,19 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from enum import Enum
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.signal import find_peaks, peak_prominences
 
 mpl.rc("font", size=16)
 mpl.rc("figure", figsize=(8, 6))
+
+
+class PlotType(str, Enum):
+    model = "model"
+    compare_velocity_to_measure = "compare_velocity_to_measure"
+    shotrecord = "shotrecord"
+    signal = "signal"
 
 
 def compare_velocity_to_measure(
@@ -118,3 +126,67 @@ def plot_signal(sig, timestep, v, ax, cut=600):
     ax.plot(sig)
     ax.plot(cut + peaks, sig[cut + peaks], "ro")
     ax.plot(first_peak, sig[first_peak], "bx")
+
+
+def plot_velocity(model, source=None, receiver=None, colorbar=True, cmap="jet"):
+    """
+    Plot a two-dimensional velocity field from a seismic `Model`
+    object. Optionally also includes point markers for sources and receivers.
+
+    Parameters
+    ----------
+    model : Model
+        Object that holds the velocity model.
+    source : array_like or float
+        Coordinates of the source point.
+    receiver : array_like or float
+        Coordinates of the receiver points.
+    colorbar : bool
+        Option to plot the colorbar.
+    """
+    domain_size = 1.0e-3 * np.array(model.domain_size)
+    extent = [
+        model.origin[0],
+        model.origin[0] + domain_size[0],
+        model.origin[1] + domain_size[1],
+        model.origin[1],
+    ]
+
+    slices = tuple(slice(model.nbl, -model.nbl) for _ in range(2))
+    if getattr(model, "vp", None) is not None:
+        field = model.vp.data[slices]
+    else:
+        field = model.lam.data[slices]
+    plot = plt.imshow(
+        np.transpose(field),
+        animated=True,
+        cmap=cmap,
+        vmin=np.min(field),
+        vmax=np.max(field),
+        extent=extent,
+    )
+    plt.xlabel("X position (km)")
+    plt.ylabel("Depth (km)")
+
+    # Plot source points, if provided
+    if receiver is not None:
+        plt.scatter(
+            1e-3 * receiver[:, 0], 1e-3 * receiver[:, 1], s=25, c="green", marker="D"
+        )
+
+    # Plot receiver points, if provided
+    if source is not None:
+        plt.scatter(1e-3 * source[:, 0], 1e-3 * source[:, 1], s=25, c="red", marker="o")
+
+    # Ensure axis limits
+    plt.xlim(model.origin[0], model.origin[0] + domain_size[0])
+    plt.ylim(model.origin[1] + domain_size[1], model.origin[1])
+
+    # Create aligned colorbar on the right
+    if colorbar:
+        ax = plt.gca()
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        cbar = plt.colorbar(plot, cax=cax)
+        cbar.set_label("Velocity (km/s)")
+    plt.show()

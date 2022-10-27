@@ -137,7 +137,9 @@ def setup_domain(
         angle=sangle,
     )
 
-    src = SineSource(name="src", grid=model.grid, f0=f0, time_range=time_range)
+    src = SineSource(
+        name="src", grid=model.grid, f0=f0, time_range=time_range, npoint=ns
+    )
     src.coordinates.data[:] = src_positions
     rec = Receiver(
         name="rec",

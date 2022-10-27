@@ -1,12 +1,10 @@
 """This module provides the sonar class for the water tank project."""
 import numpy as np
 import numpy.typing as npt
-import itertools
 from devito import Eq, Operator, TimeFunction, solve
 from examples.seismic import Model
 
 from simulation import plotting, utils
-import time
 
 
 class Sonar:
@@ -22,7 +20,7 @@ class Sonar:
         ns: int,
         posx: float,
         posy: float,
-        bottom: utils.Bottom
+        bottom: utils.Bottom,
     ) -> None:
         """Initialize the sonar class.
 
@@ -93,8 +91,8 @@ class Sonar:
         """
         v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
         if bottom == utils.Bottom.ellipsis:
-            nx = self.model.shape[0]
-            nz = self.model.shape[1]
+            nx = self.size_x
+            nz = self.size_y
             a = (int)((nx - 1) / 2)
             b = (int)((nz - 1) / 2)
             for i in range(nx):
@@ -103,7 +101,7 @@ class Sonar:
                         v[i, j] = v_wall
             v[:, :b] = self.v_env
         elif bottom == utils.Bottom.flat:
-            y_wall = max(int(self.size_y *0.8), self.size_y - 50)
+            y_wall = max(int(self.size_y * 0.8), self.size_y - 50)
             v[:, y_wall:] = v_wall
         elif bottom == utils.Bottom.circle:
             ox = int(self.posx * self.size_x)
@@ -111,10 +109,9 @@ class Sonar:
             r = self.size_y - oy - 10
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
-            mask = (y[np.newaxis,:]-oy)**2 + (x[:,np.newaxis]-ox)**2 < r**2
+            mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 < r**2
             v[mask] = v_wall
         return v
-
 
     def run_position_angles(
         self,
@@ -160,3 +157,11 @@ class Sonar:
             source=self.src.coordinates.data,
             receiver=self.rec.coordinates.data,
         )
+
+    def plot_model(self, plot: plotting.PlotType) -> None:
+        """Plot the model."""
+        print(self.rec.data.shape)
+        if plot == plotting.PlotType.model:
+            plotting.plot_velocity(
+                self.model, self.src.coordinates.data, self.rec.coordinates.data
+            )
