@@ -26,9 +26,8 @@ def find_exp(number: float) -> int:
     return math.floor(math.log10(number))
 
 
-def src_positions(
-    cx: float, cy: float, alpha: float, ns: int, sdist: float
-) -> np.typing.NDArray:
+def src_positions(cx: float, cy: float, alpha: float, ns: int,
+                  sdist: float) -> np.typing.NDArray:
     """
     Create source positions.
 
@@ -48,8 +47,12 @@ def src_positions(
     dy = sdist * math.cos(math.pi / 180 * alpha)
 
     res = np.zeros((ns, 2))
-    res[:, 0] = np.linspace(cx - dx * (ns - 1) / 2, cx + dx * (ns - 1) / 2, num=ns)
-    res[:, 1] = np.linspace(cy - dy * (ns - 1) / 2, cy + dy * (ns - 1) / 2, num=ns)
+    res[:, 0] = np.linspace(cx - dx * (ns - 1) / 2,
+                            cx + dx * (ns - 1) / 2,
+                            num=ns)
+    res[:, 1] = np.linspace(cy - dy * (ns - 1) / 2,
+                            cy + dy * (ns - 1) / 2,
+                            num=ns)
     return res
 
 
@@ -98,13 +101,18 @@ class SineSource(WaveletSource):
         a = self.a or 1
         r = np.pi * self.f0 * (self.time_values - t0)
         wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
-        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
+        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0):] = 0
         return wave
 
 
-def setup_domain(
-    model, tn=0.05, ns=128, f0=5000, posx=0.5, posy=0.0, angle=90, v_env=1.4967
-):
+def setup_domain(model,
+                 tn=0.05,
+                 ns=128,
+                 f0=5000,
+                 posx=0.5,
+                 posy=0.0,
+                 angle=90,
+                 v_env=1.4967):
     """
     Setup the domain.
 
@@ -152,9 +160,10 @@ def setup_domain(
     return src, rec, time_range, src_center, sdist
 
 
-def object_distance(
-    receiver, timestep: float, v_env: float, cut: int = 600
-) -> tuple[float, float]:
+def object_distance(receiver,
+                    timestep: float,
+                    v_env: float,
+                    cut: int = 600) -> tuple[float, float]:
     """
     Calculate the distance of the object from the receiver.
 
@@ -169,12 +178,12 @@ def object_distance(
     x = receiver[cut:]
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
-    first_peak = (
-        cut + peaks[(prominences - np.average(prominences)) > np.std(prominences)][0]
-    )
+    first_peak = (cut + peaks[
+        (prominences - np.average(prominences)) > np.std(prominences)][0])
     #  first_peak = cut + peaks[[x[p] > 1.49e-5 for p in peaks]][0]
     distance = ((first_peak * timestep) / 2) * v_env
     return distance, x[first_peak - cut]
+
 
 def setup_beam(domain_size, src, rec, op, u, source_distance, time_range, px,
                py, alpha):
@@ -189,6 +198,7 @@ def setup_beam(domain_size, src, rec, op, u, source_distance, time_range, px,
     src.coordinates.data[:] = pos[:]
     rec.coordinates.data[:] = pos[:]
     u.data.fill(0)
+
 
 def run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
              alpha):
@@ -244,16 +254,16 @@ def run_positions_angles(
         for j, alpha in enumerate(angle):
             start = time.time()
 
-            run_beam(model, u, src, rec, px, py, alpha, time_range):
+            run_beam(model, u, src, rec, px, py, alpha, time_range)
 
             res[j] = rec.data
-            result = object_distance(
-                np.average(rec.data, axis=1), model.critical_dt, v_env
-            )
+            result = object_distance(np.average(rec.data, axis=1),
+                                     model.critical_dt, v_env)
             distances[i, j] = result[0]
             amplitudes[i, j] = result[1]
             print(f"Iteration took: {time.time() - start}")
     return distances, amplitudes, res
+
 
 def run_angles(
     model,
@@ -289,15 +299,17 @@ def run_angles(
     res = np.zeros((angles.shape[0], rec.data.shape[0], rec.data.shape[1]))
     for j, alpha in enumerate(angle):
         start = time.time()
-        run_beam(model, u, src, rec, px, py, alpha, time_range):
+        run_beam(model, u, src, rec, px, py, alpha, time_range)
         res[j] = rec.data
         print(f"Iteration took: {time.time() - start}")
     return res
 
 
-def calculate_coordinates(
-    domain_size, rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]
-):
+def calculate_coordinates(domain_size,
+                          rec_pos,
+                          angle=[65],
+                          distance=[26],
+                          amplitude=[2.3169e-09]):
     """
     Calculate the coordinates of the object.
 
@@ -319,6 +331,8 @@ def calculate_coordinates(
         for j, alpha in enumerate(angle):
             sx = pos[0]
             sy = pos[1]
-            coordinates[i, j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
-            coordinates[i, j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
+            coordinates[i, j,
+                        0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
+            coordinates[i, j,
+                        1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
     return coordinates
