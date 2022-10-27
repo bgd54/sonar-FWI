@@ -180,7 +180,6 @@ class Sonar:
             self.rec,
             self.op,
             self.u,
-            self.v_env,
             self.sdist,
             self.time_range,
             px=self.posx,
