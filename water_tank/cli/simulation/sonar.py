@@ -41,7 +41,8 @@ class Sonar:
         self.size_y = (int)(size_y / 10**exp)
         shape = (self.size_x, self.size_y)
         self.posx = posx
-        self.posy = posy if posy != 0.0 else ((ns - 1) / 2 * v_env / f0 / 8) / size_y
+        self.posy = posy if posy != 0.0 else (
+            (ns - 1) / 2 * v_env / f0 / 8) / size_y
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
         self.model = Model(
@@ -53,7 +54,9 @@ class Sonar:
             nbl=10,
             bcs="damp",
         )
-        print(f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, dt: {self.model.critical_dt} t: {tn}')
+        print(
+            f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, dt: {self.model.critical_dt} t: {tn}'
+        )
         (
             self.src,
             self.rec,
@@ -69,9 +72,10 @@ class Sonar:
             posy=posy,
             v_env=self.v_env,
         )
-        self.u = TimeFunction(
-            name="u", grid=self.model.grid, time_order=2, space_order=2
-        )
+        self.u = TimeFunction(name="u",
+                              grid=self.model.grid,
+                              time_order=2,
+                              space_order=2)
         pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
         stencil = Eq(self.u.forward, solve(pde, self.u.forward))
         src_term = self.src.inject(
@@ -80,11 +84,13 @@ class Sonar:
         )
         rec_term = self.rec.interpolate(expr=self.u)
 
-        self.op = Operator(
-            [stencil] + src_term + rec_term, subs=self.model.spacing_map, openmp=True
-        )
+        self.op = Operator([stencil] + src_term + rec_term,
+                           subs=self.model.spacing_map,
+                           openmp=True)
 
-    def set_bottom(self, bottom: utils.Bottom, v_wall: float = 3.24) -> npt.NDArray:
+    def set_bottom(self,
+                   bottom: utils.Bottom,
+                   v_wall: float = 3.24) -> npt.NDArray:
         """Set the bottom of the water tank.
 
         Args:
@@ -98,7 +104,7 @@ class Sonar:
             b = (int)((nz - 1) / 2)
             for i in range(nx):
                 for j in range(nz):
-                    if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
+                    if ((i - a)**2 / a**2 + (j - b)**2 / b**2) > 1:
                         v[i, j] = v_wall
             v[:, :b] = self.v_env
         elif bottom == utils.Bottom.flat:
@@ -110,7 +116,8 @@ class Sonar:
             r = self.size_y - oy - 10
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
-            mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 < r**2
+            mask = (y[np.newaxis, :] - oy)**2 + (x[:, np.newaxis] -
+                                                 ox)**2 < r**2
             v[mask] = v_wall
         return v
 
@@ -161,20 +168,16 @@ class Sonar:
         """Plot the model."""
         print(self.rec.data.shape)
         if plot == plotting.PlotType.model:
-            plotting.plot_velocity(
-                self.model, self.src.coordinates.data, self.rec.coordinates.data
-            )
+            plotting.plot_velocity(self.model, self.src.coordinates.data,
+                                   self.rec.coordinates.data)
 
-    def run_angles(
-        self,
-        angles : npt.NDArray
-    ) -> None:
+    def run_angles(self, angles: npt.NDArray) -> npt.NDArray:
         """Run the sonar simulation. Plots the results.
 
         Args:
             angles (NDArray[float]): list of angles to launch beams 
         """
-        results = utils.run_angles(
+        return utils.run_angles(
             self.model,
             self.src,
             self.rec,
@@ -186,3 +189,19 @@ class Sonar:
             py=self.posy,
             angle=angles,
         )
+
+    def parse_and_plot(self, angles, recordings):
+        distances = np.zeros(angles.shape)
+        for i, (alpha, rec) in enumerate(zip(angles, recordings)):
+            distances[i], _ = utils.object_distance(np.average(rec, axis=1),
+                                                    self.model.critical_dt,
+                                                    self.v_env)
+
+        abs_coords = utils.calculate_coordinates_from_pos(
+            rec_pos=self.center_pos, angle=angles, distance=distances)
+
+        plotting.compare_velocity_to_measure(
+            self.model,
+            abs_coords,
+            source=self.src.coordinates.data,
+            receiver=self.rec.coordinates.data)

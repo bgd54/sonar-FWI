@@ -52,7 +52,7 @@ def compare_velocity_to_measure(
         extent=extent,
     )
     plt.xlabel("X position (m)")
-    plt.ylabel("Depth (km)")
+    plt.ylabel("Depth (m)")
 
     # Plot source points, if provided
     if receiver is not None:

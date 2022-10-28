@@ -202,7 +202,7 @@ def setup_beam(domain_size, src, rec, op, u, source_distance, time_range, px,
 
 def run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
              alpha):
-    setup_beam(model.domain_size, src, rec, up, u, source_distance, time_range,
+    setup_beam(model.domain_size, src, rec, op, u, source_distance, time_range,
                px, py, alpha)
 
     # Run the operator for `(nt-2)` time steps:
@@ -254,7 +254,8 @@ def run_positions_angles(
         for j, alpha in enumerate(angle):
             start = time.time()
 
-            run_beam(model, u, src, rec, px, py, alpha, time_range)
+            run_beam(model, src, rec, op, u, source_distance, time_range, px,
+                     py, alpha)
 
             res[j] = rec.data
             result = object_distance(np.average(rec.data, axis=1),
@@ -295,11 +296,11 @@ def run_angles(
     Returns:
         res: Receiver data fom beam simulations
     """
-    print(np.shape(distances))
-    res = np.zeros((angles.shape[0], rec.data.shape[0], rec.data.shape[1]))
+    res = np.zeros((angle.shape[0], rec.data.shape[0], rec.data.shape[1]))
     for j, alpha in enumerate(angle):
         start = time.time()
-        run_beam(model, u, src, rec, px, py, alpha, time_range)
+        run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
+                 alpha)
         res[j] = rec.data
         print(f"Iteration took: {time.time() - start}")
     return res
@@ -335,4 +336,27 @@ def calculate_coordinates(domain_size,
                         0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
             coordinates[i, j,
                         1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
+    return coordinates
+
+
+def calculate_coordinates_from_pos(rec_pos: tuple[float,
+                                                  float], angle: npt.NDArray,
+                                   distance: npt.NDArray) -> npt.NDArray:
+    """
+    Calculate the absolute coordinates of the object.
+
+    Args:
+        rec_pos (tuple[float]): Position of the receiver.
+        angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
+        distance (list[float]): Distance of the object from the receiver.
+
+    Returns:
+        coordinates (list[float]): Coordinates of the object.
+    """
+    coordinates = np.zeros((np.size(angle), 2))
+    for j, alpha in enumerate(angle):
+        sx = rec_pos[0]
+        sy = rec_pos[1]
+        coordinates[j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[j]
+        coordinates[j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[j]
     return coordinates
