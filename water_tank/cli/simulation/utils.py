@@ -145,9 +145,11 @@ def setup_domain(model,
         angle=sangle,
     )
 
-    src = SineSource(
-        name="src", grid=model.grid, f0=f0, time_range=time_range, npoint=ns
-    )
+    src = SineSource(name="src",
+                     grid=model.grid,
+                     f0=f0,
+                     time_range=time_range,
+                     npoint=ns)
     src.coordinates.data[:] = src_positions
     rec = Receiver(
         name="rec",
@@ -185,25 +187,17 @@ def object_distance(receiver,
     return distance, x[first_peak - cut]
 
 
-def setup_beam(domain_size, src, rec, op, u, source_distance, time_range, px,
-               py, alpha):
-    pos, _ = src_positions_in_domain(
-        domain_size,
-        posx=px,
-        posy=py,
-        angle=alpha,
-        ns=src.coordinates.data.shape[0],
-        source_distance=source_distance,
-    )
+def setup_beam(src, rec, u, source_distance, center_pos, alpha):
+    pos = src_positions(center_pos[0], center_pos[1], alpha,
+                        src.coordinates.data.shape[0], source_distance)
     src.coordinates.data[:] = pos[:]
     rec.coordinates.data[:] = pos[:]
     u.data.fill(0)
 
 
-def run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
+def run_beam(model, src, rec, op, u, source_distance, time_range, center_pos,
              alpha):
-    setup_beam(model.domain_size, src, rec, op, u, source_distance, time_range,
-               px, py, alpha)
+    setup_beam(src, rec, u, source_distance, center_pos, alpha)
 
     # Run the operator for `(nt-2)` time steps:
     op(time=time_range.num - 2, dt=model.critical_dt)
@@ -218,8 +212,7 @@ def run_positions_angles(
     v_env,
     source_distance,
     time_range,
-    posx=[0.5],
-    posy=[0.0],
+    centers,
     angle=[90],
 ):
     """
@@ -234,8 +227,7 @@ def run_positions_angles(
         v_env (float): Velocity of the water.
         source_distance (float): Distance between sources.
         time_range (TimeAxis): TimeAxis of the simulation.
-        posx (list[float]): Relative position of the center of the source array in x direction.
-        posy (list[float]): Relative position of the center of the source array in y direction.
+        centers (list[tuple[float, float]]): Absolute position of the center of the source array.
         angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
 
     Returns:
@@ -243,19 +235,16 @@ def run_positions_angles(
         amplitudes (list[float]): Amplitudes of the signal at the receiver.
         res
     """
-    if np.size(posx) != np.size(posy):
-        print("error, posx and posy arrays must be same length")
-        return
-    distances = np.zeros((np.size(posx), np.size(angle)))
-    amplitudes = np.zeros((np.size(posx), np.size(angle)))
+    distances = np.zeros((len(centers), np.size(angle)))
+    amplitudes = np.zeros((len(centers), np.size(angle)))
     print(np.shape(distances))
     res = np.zeros((len(angle), rec.data.shape[0], rec.data.shape[1]))
-    for i, (px, py) in enumerate(zip(posx, posy)):
+    for i, center_pos in enumerate(centers):
         for j, alpha in enumerate(angle):
             start = time.time()
 
-            run_beam(model, src, rec, op, u, source_distance, time_range, px,
-                     py, alpha)
+            run_beam(model, src, rec, op, u, source_distance, time_range,
+                     center_pos, alpha)
 
             res[j] = rec.data
             result = object_distance(np.average(rec.data, axis=1),
@@ -274,8 +263,7 @@ def run_angles(
     u,
     source_distance,
     time_range,
-    px=0.5,
-    py=0.0,
+    center,
     angle=[90],
 ):
     """
@@ -289,8 +277,7 @@ def run_angles(
         u (TimeFunction): TimeFunction of the simulation.
         source_distance (float): Distance between sources.
         time_range (TimeAxis): TimeAxis of the simulation.
-        posx (float): Relative position of the center of the source array in x direction.
-        posy (float): Relative position of the center of the source array in y direction.
+        center (tuple[float,float]): Absolute position of the center of the source array.
         angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
 
     Returns:
@@ -299,7 +286,7 @@ def run_angles(
     res = np.zeros((angle.shape[0], rec.data.shape[0], rec.data.shape[1]))
     for j, alpha in enumerate(angle):
         start = time.time()
-        run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
+        run_beam(model, src, rec, op, u, source_distance, time_range, center,
                  alpha)
         res[j] = rec.data
         print(f"Iteration took: {time.time() - start}")

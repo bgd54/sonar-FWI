@@ -40,13 +40,13 @@ class Sonar:
         self.size_x = (int)(size_x / 10**exp)
         self.size_y = (int)(size_y / 10**exp)
         shape = (self.size_x, self.size_y)
-        self.posx = posx
-        self.posy = posy if posy != 0.0 else (
-            (ns - 1) / 2 * v_env / f0 / 8) / size_y
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
         self.model = Model(
-            vp=self.set_bottom(bottom),
+            vp=self.set_bottom(bottom,
+                               cx=posx,
+                               cy=posy if posy != 0.0 else
+                               ((ns - 1) / 2 * v_env / f0 / 8) / size_y),
             origin=origin,
             spacing=spacing,
             shape=shape,
@@ -90,6 +90,8 @@ class Sonar:
 
     def set_bottom(self,
                    bottom: utils.Bottom,
+                   cx: float,
+                   cy: float,
                    v_wall: float = 3.24) -> npt.NDArray:
         """Set the bottom of the water tank.
 
@@ -111,8 +113,8 @@ class Sonar:
             y_wall = max(int(self.size_y * 0.8), self.size_y - 50)
             v[:, y_wall:] = v_wall
         elif bottom == utils.Bottom.circle:
-            ox = int(self.posx * self.size_x)
-            oy = int(self.posy * self.size_y)
+            ox = int(cx * self.size_x)
+            oy = int(cy * self.size_y)
             r = self.size_y - oy - 10
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
@@ -144,8 +146,7 @@ class Sonar:
             self.v_env,
             self.sdist,
             self.time_range,
-            posx=[0.5],
-            posy=[0.0],
+            centers=[self.center_pos],
             angle=angles,
         )
 
@@ -185,8 +186,7 @@ class Sonar:
             self.u,
             self.sdist,
             self.time_range,
-            px=self.posx,
-            py=self.posy,
+            center=self.center_pos,
             angle=angles,
         )
 
