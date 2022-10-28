@@ -1,11 +1,11 @@
 import math
 import time
+from enum import Enum
 
 import numpy as np
 import numpy.typing as npt
-from examples.seismic import Receiver, WaveletSource, TimeAxis
+from examples.seismic import Receiver, TimeAxis, WaveletSource
 from scipy.signal import find_peaks, peak_prominences
-from enum import Enum
 
 
 class Bottom(str, Enum):
@@ -176,6 +176,28 @@ def object_distance(
     distance = ((first_peak * timestep) / 2) * v_env
     return distance, x[first_peak - cut]
 
+def setup_beam(domain_size, src, rec, op, u, source_distance, time_range, px,
+               py, alpha):
+    pos, _ = src_positions_in_domain(
+        domain_size,
+        posx=px,
+        posy=py,
+        angle=alpha,
+        ns=src.coordinates.data.shape[0],
+        source_distance=source_distance,
+    )
+    src.coordinates.data[:] = pos[:]
+    rec.coordinates.data[:] = pos[:]
+    u.data.fill(0)
+
+def run_beam(model, src, rec, op, u, source_distance, time_range, px, py,
+             alpha):
+    setup_beam(model.domain_size, src, rec, up, u, source_distance, time_range,
+               px, py, alpha)
+
+    # Run the operator for `(nt-2)` time steps:
+    op(time=time_range.num - 2, dt=model.critical_dt)
+
 
 def run_positions_angles(
     model,
@@ -222,20 +244,8 @@ def run_positions_angles(
         for j, alpha in enumerate(angle):
             start = time.time()
 
-            pos, _ = src_positions_in_domain(
-                model.domain_size,
-                posx=px,
-                posy=py,
-                angle=alpha,
-                ns=src.coordinates.data.shape[0],
-                source_distance=source_distance,
-            )
-            src.coordinates.data[:] = pos[:]
-            rec.coordinates.data[:] = pos[:]
-            u.data.fill(0)
+            run_beam(model, u, src, rec, px, py, alpha, time_range):
 
-            # Run the operator for `(nt-2)` time steps:
-            op(time=time_range.num - 2, dt=model.critical_dt)
             res[j] = rec.data
             result = object_distance(
                 np.average(rec.data, axis=1), model.critical_dt, v_env
@@ -244,6 +254,45 @@ def run_positions_angles(
             amplitudes[i, j] = result[1]
             print(f"Iteration took: {time.time() - start}")
     return distances, amplitudes, res
+
+def run_angles(
+    model,
+    src,
+    rec,
+    op,
+    u,
+    source_distance,
+    time_range,
+    px=0.5,
+    py=0.0,
+    angle=[90],
+):
+    """
+    Run the simulation for different angles.
+
+    Args:
+        model (Model): Model of the domain.
+        src (SineSource): Source of the signal.
+        rec (Receiver): Receiver of the signal.
+        op (Operator): Operator of the simulation.
+        u (TimeFunction): TimeFunction of the simulation.
+        source_distance (float): Distance between sources.
+        time_range (TimeAxis): TimeAxis of the simulation.
+        posx (float): Relative position of the center of the source array in x direction.
+        posy (float): Relative position of the center of the source array in y direction.
+        angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
+
+    Returns:
+        res: Receiver data fom beam simulations
+    """
+    print(np.shape(distances))
+    res = np.zeros((angles.shape[0], rec.data.shape[0], rec.data.shape[1]))
+    for j, alpha in enumerate(angle):
+        start = time.time()
+        run_beam(model, u, src, rec, px, py, alpha, time_range):
+        res[j] = rec.data
+        print(f"Iteration took: {time.time() - start}")
+    return res
 
 
 def calculate_coordinates(

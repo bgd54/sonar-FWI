@@ -53,6 +53,7 @@ class Sonar:
             nbl=10,
             bcs="damp",
         )
+        print(f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, dt: {self.model.critical_dt} t: {tn}')
         (
             self.src,
             self.rec,
@@ -122,8 +123,6 @@ class Sonar:
         """Run the sonar simulation. Plots the results.
 
         Args:
-            tn (float): End time of the simulation. (s)
-            ns (int): Number of sources.
             angle_left (float): Left angle of the simulation. (deg)
             angle_right (float): Right angle of the simulation. (deg)
             angle_step (float): Angle step of the simulation. (deg)
@@ -165,3 +164,26 @@ class Sonar:
             plotting.plot_velocity(
                 self.model, self.src.coordinates.data, self.rec.coordinates.data
             )
+
+    def run_angles(
+        self,
+        angles : npt.NDArray
+    ) -> None:
+        """Run the sonar simulation. Plots the results.
+
+        Args:
+            angles (NDArray[float]): list of angles to launch beams 
+        """
+        results = utils.run_angles(
+            self.model,
+            self.src,
+            self.rec,
+            self.op,
+            self.u,
+            self.v_env,
+            self.sdist,
+            self.time_range,
+            px=self.posx,
+            py=self.posy,
+            angle=angles,
+        )
