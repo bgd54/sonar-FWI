@@ -4,7 +4,7 @@ import numpy as np
 
 from simulation.sonar import Sonar
 from simulation.utils import Bottom
-from simulation.plotting import PlotType
+from simulation.plotting import PlotType, plot_snapshot_and_signal
 
 app = typer.Typer()
 
@@ -103,6 +103,30 @@ def analyse(
         recordings= np.load(fin)
     s.parse_and_plot(angles, recordings)
     
+
+@app.command()
+def snaps(
+    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
+    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
+    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    ns: int = typer.Option(128, "-n", help="Number of sources."),
+    posx: float = typer.Option(
+        0.5, "-px", help="Position of the source in x direction. (relative)"
+    ),
+    posy: float = typer.Option(
+        0.0, "-py", help="Position of the source in y direction. (relative)"
+    ),
+    tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    bottom: Bottom = Bottom.ellipsis,
+    snaps_rate: float = typer.Option(0.1, "-s", help="Time between snapshots (ms)"),
+    outdir: str = typer.Option("../snapshopts", "-O", help="output dir to save the frames"),
+):
+    """Initialize the sonar class."""
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom, snaps_rate)
+    s.run_angles(np.arange(90, 91))
+    print(s.usave.data.shape)
+    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model.critical_dt, s.model)
 
 @app.callback()
 def main(

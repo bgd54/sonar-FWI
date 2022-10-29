@@ -161,7 +161,6 @@ def setup_domain(model,
 
     return src, rec, time_range, src_center, sdist
 
-
 def object_distance(receiver,
                     timestep: float,
                     v_env: float,
@@ -182,7 +181,6 @@ def object_distance(receiver,
     prominences = peak_prominences(x, peaks)[0]
     first_peak = (cut + peaks[
         (prominences - np.average(prominences)) > np.std(prominences)][0])
-    #  first_peak = cut + peaks[[x[p] > 1.49e-5 for p in peaks]][0]
     distance = ((first_peak * timestep) / 2) * v_env
     return distance, x[first_peak - cut]
 
@@ -200,6 +198,7 @@ def run_beam(model, src, rec, op, u, source_distance, time_range, center_pos,
     setup_beam(src, rec, u, source_distance, center_pos, alpha)
 
     # Run the operator for `(nt-2)` time steps:
+    print(f"time = {time_range.num} dt = {model.critical_dt}")
     op(time=time_range.num - 2, dt=model.critical_dt)
 
 

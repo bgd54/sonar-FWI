@@ -1,8 +1,9 @@
 """This module provides the sonar class for the water tank project."""
 import numpy as np
 import numpy.typing as npt
-from devito import Eq, Operator, TimeFunction, solve
+from devito import Eq, Operator, TimeFunction, solve, ConditionalDimension
 from examples.seismic import Model
+import math
 
 from simulation import plotting, utils
 
@@ -21,6 +22,7 @@ class Sonar:
         posx: float,
         posy: float,
         bottom: utils.Bottom,
+        snapshot_delay: float = 0.0,
     ) -> None:
         """Initialize the sonar class.
 
@@ -33,6 +35,7 @@ class Sonar:
             ns (int): Number of sources.
             posx (float): Position of the source in x direction. (relative)
             posy (float): Position of the source in y direction. (relative)
+            snapshot_delay (float): Time delay between snapshots (ms)
         """
         self.f0 = f0
         self.v_env = v_env
@@ -84,7 +87,29 @@ class Sonar:
         )
         rec_term = self.rec.interpolate(expr=self.u)
 
-        self.op = Operator([stencil] + src_term + rec_term,
+        save_stencil = []
+        if snapshot_delay > 0.0:
+            snapshot_delay_iter = math.ceil(snapshot_delay /
+                                            self.model.critical_dt)
+            nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
+            print(
+                f'{snapshot_delay} / {self.model.critical_dt} = {snapshot_delay_iter}'
+            )
+            print(
+                f'{self.time_range.num} / {snapshot_delay_iter} = {nsnaps}\n')
+            time_subsampled = ConditionalDimension(
+                't_sub',
+                parent=self.model.grid.time_dim,
+                factor=snapshot_delay_iter)
+            self.usave = TimeFunction(name='usave',
+                                      grid=self.model.grid,
+                                      time_order=2,
+                                      space_order=2,
+                                      save=nsnaps,
+                                      time_dim=time_subsampled)
+            save_stencil.append(Eq(self.usave, self.u))
+
+        self.op = Operator([stencil] + save_stencil + src_term + rec_term,
                            subs=self.model.spacing_map,
                            openmp=True)
 
@@ -119,7 +144,7 @@ class Sonar:
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
             mask = (y[np.newaxis, :] - oy)**2 + (x[:, np.newaxis] -
-                                                 ox)**2 < r**2
+                                                 ox)**2 > r**2
             v[mask] = v_wall
         return v
 
