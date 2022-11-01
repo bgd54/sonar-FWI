@@ -13,15 +13,15 @@ app = typer.Typer()
 def run(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    f0: float = typer.Option(
+        5, "-f", help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v",
+                                help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
+        0.5, "-px", help="Position of the source in x direction. (relative)"),
     posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
+        0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
     bottom: Bottom = Bottom.ellipsis,
 ):
@@ -29,25 +29,32 @@ def run(
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
     s.run_position_angles(5, 10, 5)
 
+
 @app.command()
 def beams(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    f0: float = typer.Option(5,
+                             "-f",
+                             help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v",
+                                help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
+        0.5, "-px", help="Position of the source in x direction. (relative)"),
     posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
+        0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
     bottom: Bottom = Bottom.ellipsis,
-    start_angle: float = typer.Option(30., "-a", help="First angle for a beam."),
-    last_angle: float = typer.Option(150., "-e", help="Last angle for a beam."),
+    start_angle: float = typer.Option(30.,
+                                      "-a",
+                                      help="First angle for a beam."),
+    last_angle: float = typer.Option(150., "-e",
+                                     help="Last angle for a beam."),
     angle_step: float = typer.Option(1., "-s", help="Step size for angles"),
-    output: str = typer.Option("./beams.npy", "-o", help="output file to save recordings"),
+    output: str = typer.Option("./beams.npy",
+                               "-o",
+                               help="output file to save recordings"),
 ):
     """Initialize the sonar class."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
@@ -57,86 +64,96 @@ def beams(
         np.save(fout, angles)
         np.save(fout, recordings)
 
+
 @app.command()
 def plot(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    f0: float = typer.Option(5,
+                             "-f",
+                             help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v",
+                                help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
+        0.5, "-px", help="Position of the source in x direction. (relative)"),
     posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
+        0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
     bottom: Bottom = Bottom.ellipsis,
     plot_type: PlotType = PlotType.model,
 ):
     """Initialize the sonar class and plot the result."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
-    s.plot_model (PlotType.model)
+    s.plot_model(PlotType.model)
 
 
 @app.command()
 def analyse(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    f0: float = typer.Option(5,
+                             "-f",
+                             help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v",
+                                help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
+        0.5, "-px", help="Position of the source in x direction. (relative)"),
     posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
+        0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
     bottom: Bottom = Bottom.ellipsis,
-    in_file: str = typer.Option("./beams.npy", "-i", help="input file to load recordings"),
+    in_file: str = typer.Option("./beams.npy",
+                                "-i",
+                                help="input file to load recordings"),
 ):
     """Initialize the sonar class."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
     with open(in_file, 'rb') as fin:
         angles = np.load(fin)
-        recordings= np.load(fin)
+        recordings = np.load(fin)
     s.parse_and_plot(angles, recordings)
-    
+
 
 @app.command()
 def snaps(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    f0: float = typer.Option(5,
+                             "-f",
+                             help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v",
+                                help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
+        0.5, "-px", help="Position of the source in x direction. (relative)"),
     posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
+        0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
     bottom: Bottom = Bottom.ellipsis,
-    snaps_rate: float = typer.Option(0.1, "-s", help="Time between snapshots (ms)"),
-    outdir: str = typer.Option("../snapshopts", "-O", help="output dir to save the frames"),
+    snaps_rate: float = typer.Option(0.1,
+                                     "-s",
+                                     help="Time between snapshots (ms)"),
+    outfile: str = typer.Option("./beam_tmp.mp4",
+                                "-o",
+                                help="Output file to save video to."),
 ):
     """Initialize the sonar class."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom, snaps_rate)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
+              snaps_rate)
     s.run_angles(np.arange(90, 91))
-    print(s.usave.data.shape)
-    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model.critical_dt, s.model)
+    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model.critical_dt,
+                             s.model, outfile)
+
 
 @app.callback()
-def main(
-    verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Show debug messages.",
-        show_default=False,
-    )
-):
+def main(verbose: bool = typer.Option(
+    False,
+    "--verbose",
+    "-v",
+    help="Show debug messages.",
+    show_default=False,
+)):
     """Sonar: a Python package for sonar signal processing."""
     # utils.set_log_level(verbose)

@@ -219,10 +219,10 @@ def plot_velocity(model,
 
 
 def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
-                             dt: float, model):
+                             dt: float, model, outfile):
     snap_step = int(recording.shape[0] / snap.shape[0])
     aline_data = np.average(recording.data, axis=1)
-    cut_1ms = int(1 / dt)
+    cut_1ms = int(2 / dt)
     x = aline_data[cut_1ms:]
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
@@ -264,7 +264,6 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
     axs[1].set_xlim(0, aline_data.shape[0])
     axs[1].set_ylim(1.1 * np.min(np.average(recording.data, axis=1)),
                     1.1 * np.max(np.average(recording.data, axis=1)))
-    #  axs[0].set_ylim(snap.shape[2], 0)
     fig.tight_layout()
 
     def update(i):
@@ -284,5 +283,5 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
                                   frames=snap.shape[0],
                                   interval=75,
                                   blit=True)
-    ani.save("test.mp4")
+    ani.save(outfile)
     plt.show()
