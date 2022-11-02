@@ -142,9 +142,8 @@ def snaps(
     """Initialize the sonar class."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
               snaps_rate)
-    s.run_angles(np.arange(90, 91))
-    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model.critical_dt,
-                             s.model, outfile)
+    s.run_angles(np.arange(80, 81))
+    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model, outfile)
 
 
 @app.callback()

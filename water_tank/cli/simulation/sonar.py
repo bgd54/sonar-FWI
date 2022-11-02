@@ -1,9 +1,10 @@
 """This module provides the sonar class for the water tank project."""
+import math
+
 import numpy as np
 import numpy.typing as npt
-from devito import Eq, Operator, TimeFunction, solve, ConditionalDimension
+from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
 from examples.seismic import Model
-import math
 
 from simulation import plotting, utils
 
@@ -40,16 +41,15 @@ class Sonar:
         self.f0 = f0
         self.v_env = v_env
         exp = utils.find_exp(self.v_env / self.f0)
-        self.size_x = (int)(size_x / 10**exp)
-        self.size_y = (int)(size_y / 10**exp)
+        self.size_x = (int)(size_x / 10**exp + 1)
+        self.size_y = (int)(size_y / 10**exp + 1)
         shape = (self.size_x, self.size_y)
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
+        posy = posy if posy != 0.0 else (
+            (ns - 1) / 2 * v_env / f0 / 8) / size_y
         self.model = Model(
-            vp=self.set_bottom(bottom,
-                               cx=posx,
-                               cy=posy if posy != 0.0 else
-                               ((ns - 1) / 2 * v_env / f0 / 8) / size_y),
+            vp=self.set_bottom(bottom, cx=posx, cy=posy),
             origin=origin,
             spacing=spacing,
             shape=shape,
@@ -58,7 +58,9 @@ class Sonar:
             bcs="damp",
         )
         print(
-            f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, dt: {self.model.critical_dt} t: {tn}'
+            f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n'
+            f'dt: {self.model.critical_dt} t: {tn}\n'
+            f'rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}}'
         )
         (
             self.src,
@@ -75,6 +77,7 @@ class Sonar:
             posy=posy,
             v_env=self.v_env,
         )
+        print(f'cp: {self.center_pos}')
         self.u = TimeFunction(name="u",
                               grid=self.model.grid,
                               time_order=2,
@@ -92,11 +95,6 @@ class Sonar:
             snapshot_delay_iter = math.ceil(snapshot_delay /
                                             self.model.critical_dt)
             nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
-            print(
-                f'{snapshot_delay} / {self.model.critical_dt} = {snapshot_delay_iter}'
-            )
-            print(
-                f'{self.time_range.num} / {snapshot_delay_iter} = {nsnaps}\n')
             time_subsampled = ConditionalDimension(
                 't_sub',
                 parent=self.model.grid.time_dim,

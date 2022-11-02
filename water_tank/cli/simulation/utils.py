@@ -161,10 +161,45 @@ def setup_domain(model,
 
     return src, rec, time_range, src_center, sdist
 
+
+def num_iter_for_distance(distance: float, dt: float, v_env: float):
+    # distance in [m]
+    # v_env in [km/s] if dt in [ms]
+    # or
+    # v_env in [m/s] if dt in [s]
+    return distance * 2 / v_env / dt
+
+
+def object_distance_iter(step: int, dt: float, v_env: float):
+    # step: dimensionless
+    # v_env in [km/s] if dt in [ms]
+    # or
+    # v_env in [m/s] if dt in [s]
+    # out distance in [m]
+    return ((step * dt) / 2) * v_env
+
+
+def find_first_peak(recording, timestep: float, v_env: float) -> int:
+    peaks, _ = find_peaks(recording)
+    prominences = peak_prominences(recording, peaks)[0]
+    return peaks[(prominences -
+                  np.average(prominences)) > np.std(prominences)][0]
+
+
+def first_peak_after(recording,
+                     timestep: float,
+                     v_env: float,
+                     cut_iter: int = None,
+                     cut_ms: float = None):
+    if cut_iter is None:
+        cut_iter = round(cut_ms / timestep)
+    return cut_iter + find_first_peak(recording[cut_iter:], timestep, v_env)
+
+
 def object_distance(receiver,
                     timestep: float,
                     v_env: float,
-                    cut: int = 600) -> tuple[float, float]:
+                    cut_ms: float = 2.0) -> tuple[float, float]:
     """
     Calculate the distance of the object from the receiver.
 
@@ -176,13 +211,10 @@ def object_distance(receiver,
     Returns:
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
-    x = receiver[cut:]
-    peaks, _ = find_peaks(x)
-    prominences = peak_prominences(x, peaks)[0]
-    first_peak = (cut + peaks[
-        (prominences - np.average(prominences)) > np.std(prominences)][0])
-    distance = ((first_peak * timestep) / 2) * v_env
-    return distance, x[first_peak - cut]
+    first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=cut_ms)
+    distance = object_distance_iter(first_peak, timestep, v_env)
+    print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
+    return distance, receiver[first_peak]
 
 
 def setup_beam(src, rec, u, source_distance, center_pos, alpha):

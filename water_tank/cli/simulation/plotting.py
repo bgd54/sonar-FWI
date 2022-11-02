@@ -6,6 +6,7 @@ from enum import Enum
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.signal import find_peaks, peak_prominences
 import matplotlib.animation as animation
+from simulation import utils
 
 mpl.rc("font", size=16)
 mpl.rc("figure", figsize=(8, 6))
@@ -218,16 +219,13 @@ def plot_velocity(model,
     plt.show()
 
 
-def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
-                             dt: float, model, outfile):
+def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
+                             outfile):
+    dt = model.critical_dt
+    v_env = model.vp.data[int(model.vp.data.shape[0] / 2), 0]
     snap_step = int(recording.shape[0] / snap.shape[0])
     aline_data = np.average(recording.data, axis=1)
-    cut_1ms = int(2 / dt)
-    x = aline_data[cut_1ms:]
-    peaks, _ = find_peaks(x)
-    prominences = peak_prominences(x, peaks)[0]
-    first_peak = (cut_1ms + peaks[
-        (prominences - np.average(prominences)) > np.std(prominences)])[0]
+    first_peak = utils.first_peak_after(aline_data, dt, v_env, cut_ms=2.0)
 
     fig, axs = plt.subplots(2,
                             1,
@@ -249,9 +247,11 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
         extent=extent,
     )
 
+    ampl_limit = max(np.abs(np.min(snap)), np.abs(np.max(snap)))
+
     matrice = axs[0].imshow(snap[0, :, :].T,
-                            vmin=np.min(snap),
-                            vmax=np.max(snap),
+                            vmin=-ampl_limit,
+                            vmax=ampl_limit,
                             alpha=.6,
                             extent=extent,
                             cmap="seismic")
@@ -264,6 +264,15 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray,
     axs[1].set_xlim(0, aline_data.shape[0])
     axs[1].set_ylim(1.1 * np.min(np.average(recording.data, axis=1)),
                     1.1 * np.max(np.average(recording.data, axis=1)))
+    ticks = utils.num_iter_for_distance(
+        np.arange(
+            0, round(utils.object_distance_iter(aline_data.shape[0], dt,
+                                                v_env)), 2), dt, v_env)
+    par1 = axs[1].twiny()
+    par1.set_xlabel("Distance (m)")
+    par1.set_xticks(ticks)
+
+    par1.set_xticklabels(np.arange(len(ticks)) * 2)
     fig.tight_layout()
 
     def update(i):
