@@ -1,10 +1,9 @@
+import numpy as np
 import typer
 
-import numpy as np
-
+from simulation.plotting import PlotType, plot_snapshot_and_signal
 from simulation.sonar import Sonar
 from simulation.utils import Bottom
-from simulation.plotting import PlotType, plot_snapshot_and_signal
 
 app = typer.Typer()
 
@@ -150,6 +149,7 @@ def snaps(
                                           "-d",
                                           help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
+    alpha: float = typer.Option(80, "-a", help="Angle of the beam"),
     snaps_rate: float = typer.Option(0.1,
                                      "-s",
                                      help="Time between snapshots (ms)"),
@@ -160,7 +160,7 @@ def snaps(
     """Initialize the sonar class."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
               source_distance, snaps_rate)
-    s.run_angles(np.arange(80, 81))
+    s.run_angles(np.arange(alpha, alpha + 1))
     plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model, outfile)
 
 

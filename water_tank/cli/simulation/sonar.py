@@ -42,11 +42,12 @@ class Sonar:
         self.f0 = f0
         self.v_env = v_env
         self.sdist = source_distance
-        exp = utils.find_exp(self.v_env / self.f0)
-        self.size_x = (int)(size_x / 10**exp + 1)
-        self.size_y = (int)(size_y / 10**exp + 1)
+        print(f"{self.v_env} / {self.f0} / 3 ")
+        spatial_dist = round(self.v_env / self.f0 / 3, 3)
+        self.size_x = (int)(size_x / spatial_dist + 1)
+        self.size_y = (int)(size_y / spatial_dist + 1)
         shape = (self.size_x, self.size_y)
-        spacing = (10**exp, 10**exp)
+        spacing = (spatial_dist, spatial_dist)
         origin = (0.0, 0.0)
         posy = posy if posy != 0.0 else (
             (ns - 1) / 2 * self.sdist) / size_y
