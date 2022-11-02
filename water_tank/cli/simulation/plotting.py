@@ -247,7 +247,7 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
         extent=extent,
     )
 
-    ampl_limit = max(np.abs(np.min(snap)), np.abs(np.max(snap)))
+    ampl_limit = max(abs(np.min(snap)), abs(np.max(snap)))
 
     matrice = axs[0].imshow(snap[0, :, :].T,
                             vmin=-ampl_limit,
