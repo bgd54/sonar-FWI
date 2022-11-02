@@ -23,10 +23,13 @@ def run(
     posy: float = typer.Option(
         0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    source_distance: float = typer.Option(
+        0.2, "-d", help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
 ):
     """Initialize the sonar class and run the simulation."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
+              source_distance)
     s.run_position_angles(5, 10, 5)
 
 
@@ -45,6 +48,9 @@ def beams(
     posy: float = typer.Option(
         0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    source_distance: float = typer.Option(0.2,
+                                          "-d",
+                                          help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
     start_angle: float = typer.Option(30.,
                                       "-a",
@@ -57,7 +63,8 @@ def beams(
                                help="output file to save recordings"),
 ):
     """Initialize the sonar class."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
+              source_distance)
     angles = np.arange(start_angle, last_angle, angle_step)
     recordings = s.run_angles(angles)
     with open(output, 'wb') as fout:
@@ -80,11 +87,15 @@ def plot(
     posy: float = typer.Option(
         0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    source_distance: float = typer.Option(0.2,
+                                          "-d",
+                                          help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
     plot_type: PlotType = PlotType.model,
 ):
     """Initialize the sonar class and plot the result."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
+              source_distance)
     s.plot_model(PlotType.model)
 
 
@@ -103,13 +114,17 @@ def analyse(
     posy: float = typer.Option(
         0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    source_distance: float = typer.Option(0.2,
+                                          "-d",
+                                          help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
     in_file: str = typer.Option("./beams.npy",
                                 "-i",
                                 help="input file to load recordings"),
 ):
     """Initialize the sonar class."""
-    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom)
+    s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
+              source_distance)
     with open(in_file, 'rb') as fin:
         angles = np.load(fin)
         recordings = np.load(fin)
@@ -131,6 +146,9 @@ def snaps(
     posy: float = typer.Option(
         0.0, "-py", help="Position of the source in y direction. (relative)"),
     tn: float = typer.Argument("-t", help="End time of the simulation. (ms)"),
+    source_distance: float = typer.Option(0.2,
+                                          "-d",
+                                          help="Distance between sources (m)"),
     bottom: Bottom = Bottom.ellipsis,
     snaps_rate: float = typer.Option(0.1,
                                      "-s",
@@ -141,7 +159,7 @@ def snaps(
 ):
     """Initialize the sonar class."""
     s = Sonar(size_x, size_y, f0, v_env, tn, ns, posx, posy, bottom,
-              snaps_rate)
+              source_distance, snaps_rate)
     s.run_angles(np.arange(80, 81))
     plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model, outfile)
 

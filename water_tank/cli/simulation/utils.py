@@ -112,6 +112,7 @@ def setup_domain(model,
                  posx=0.5,
                  posy=0.0,
                  angle=90,
+                 sdist=0.2,
                  v_env=1.4967):
     """
     Setup the domain.
@@ -133,8 +134,6 @@ def setup_domain(model,
     dt = model.critical_dt
     time_range = TimeAxis(start=t0, stop=tn, step=dt)
     nr = ns
-    wavelength = v_env / f0
-    sdist = wavelength / 8
     sangle = angle
     src_positions, src_center = src_positions_in_domain(
         model.domain_size,
@@ -159,7 +158,7 @@ def setup_domain(model,
         coordinates=src.coordinates.data,
     )
 
-    return src, rec, time_range, src_center, sdist
+    return src, rec, time_range, src_center
 
 
 def num_iter_for_distance(distance: float, dt: float, v_env: float):

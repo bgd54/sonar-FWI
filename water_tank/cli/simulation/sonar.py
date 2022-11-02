@@ -23,6 +23,7 @@ class Sonar:
         posx: float,
         posy: float,
         bottom: utils.Bottom,
+        source_distance: float,
         snapshot_delay: float = 0.0,
     ) -> None:
         """Initialize the sonar class.
@@ -40,6 +41,7 @@ class Sonar:
         """
         self.f0 = f0
         self.v_env = v_env
+        self.sdist = source_distance
         exp = utils.find_exp(self.v_env / self.f0)
         self.size_x = (int)(size_x / 10**exp + 1)
         self.size_y = (int)(size_y / 10**exp + 1)
@@ -47,7 +49,7 @@ class Sonar:
         spacing = (10**exp, 10**exp)
         origin = (0.0, 0.0)
         posy = posy if posy != 0.0 else (
-            (ns - 1) / 2 * v_env / f0 / 8) / size_y
+            (ns - 1) / 2 * self.sdist) / size_y
         self.model = Model(
             vp=self.set_bottom(bottom, cx=posx, cy=posy),
             origin=origin,
@@ -67,7 +69,6 @@ class Sonar:
             self.rec,
             self.time_range,
             self.center_pos,
-            self.sdist,
         ) = utils.setup_domain(
             self.model,
             tn=tn,
@@ -75,9 +76,10 @@ class Sonar:
             f0=self.f0,
             posx=posx,
             posy=posy,
+            sdist=self.sdist,
             v_env=self.v_env,
         )
-        print(f'cp: {self.center_pos}')
+        print(f'cp: {self.center_pos}, sdist = {self.sdist}')
         self.u = TimeFunction(name="u",
                               grid=self.model.grid,
                               time_order=2,
@@ -139,6 +141,7 @@ class Sonar:
             ox = int(cx * self.size_x)
             oy = int(cy * self.size_y)
             r = self.size_y - oy - 10
+            print(f"R {r}")
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
             mask = (y[np.newaxis, :] - oy)**2 + (x[:, np.newaxis] -
