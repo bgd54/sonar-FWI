@@ -205,7 +205,7 @@ def object_distance(
     """
     first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=cut_ms)
     distance = object_distance_iter(first_peak, timestep, v_env)
-    print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
+    #  print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
     return distance, receiver[first_peak]
 
 
@@ -226,7 +226,7 @@ def run_beam(model, src, rec, op, u, source_distance, time_range, center_pos, al
     setup_beam(src, rec, u, source_distance, center_pos, alpha)
 
     # Run the operator for `(nt-2)` time steps:
-    print(f"time = {time_range.num} dt = {model.critical_dt}")
+    #  print(f"time = {time_range.num} dt = {model.critical_dt}")
     op(time=time_range.num - 2, dt=model.critical_dt)
 
 
@@ -264,7 +264,7 @@ def run_positions_angles(
     """
     distances = np.zeros((len(centers), np.size(angle)))
     amplitudes = np.zeros((len(centers), np.size(angle)))
-    print(np.shape(distances))
+    #  print(np.shape(distances))
     res = np.zeros((len(angle), rec.data.shape[0], rec.data.shape[1]))
     for i, center_pos in enumerate(centers):
         for j, alpha in enumerate(angle):
@@ -317,7 +317,7 @@ def run_angles(
         start = time.time()
         run_beam(model, src, rec, op, u, source_distance, time_range, center, alpha)
         res[j] = rec.data
-        print(f"Iteration took: {time.time() - start}")
+        print(f"Iteration alpha={alpha} took: {time.time() - start}")
     return res
 
 

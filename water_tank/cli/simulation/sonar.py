@@ -42,7 +42,6 @@ class Sonar:
         self.v_env = v_env
         self.tn = max(size_x, size_y) / v_env * 3
         self.sdist = source_distance
-        print(f"{self.v_env} / {self.f0} / 3 ")
         self.spatial_dist = round(self.v_env / self.f0 / 3, 3)
         self.size_x = (int)(size_x / self.spatial_dist + 1)
         self.size_y = (int)(size_y / self.spatial_dist + 1)
@@ -60,11 +59,6 @@ class Sonar:
             nbl=10,
             bcs="damp",
         )
-        print(
-            f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
-            f"dt: {self.model.critical_dt} t: {self.tn}\n"
-            f"rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}}"
-        )
         (self.src, self.rec, self.time_range, self.center_pos,) = utils.setup_domain(
             self.model,
             tn=self.tn,
@@ -75,7 +69,11 @@ class Sonar:
             sdist=self.sdist,
             v_env=self.v_env,
         )
-        print(f"cp: {self.center_pos}, sdist = {self.sdist}")
+        print(
+            f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
+            f"dt: {self.model.critical_dt} t: {tn}\n"
+            f"rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}} cp: {self.center_pos}, sdist = {self.sdist}"
+        )
         self.u = TimeFunction(
             name="u", grid=self.model.grid, time_order=2, space_order=2
         )
@@ -207,7 +205,6 @@ class Sonar:
 
     def plot_model(self, plot: plotting.PlotType) -> None:
         """Plot the model."""
-        print(self.rec.data.shape)
         if plot == plotting.PlotType.model:
             plotting.plot_velocity(
                 self.model, self.src.coordinates.data, self.rec.coordinates.data
