@@ -18,13 +18,13 @@ class Sonar:
         size_y: int,
         f0: float,
         v_env: float,
-        tn: float,
         ns: int,
         posx: float,
         posy: float,
         bottom: utils.Bottom,
         source_distance: float,
         snapshot_delay: float = 0.0,
+        obstacle: bool = False,
     ) -> None:
         """Initialize the sonar class.
 
@@ -33,7 +33,6 @@ class Sonar:
             size_y (int): Size in y direction. (m)
             f0 (float): Center frequency of the signal. (kHz)
             v_env (float): Environment velocity. (km/s)
-            tn (float): End time of the simulation. (ms)
             ns (int): Number of sources.
             posx (float): Position of the source in x direction. (relative)
             posy (float): Position of the source in y direction. (relative)
@@ -41,16 +40,17 @@ class Sonar:
         """
         self.f0 = f0
         self.v_env = v_env
+        self.tn = 10 * f0 / (utils.find_exp(f0) ** 2)
         self.sdist = source_distance
         print(f"{self.v_env} / {self.f0} / 3 ")
-        spatial_dist = round(self.v_env / self.f0 / 3, 3)
-        self.size_x = (int)(size_x / spatial_dist + 1)
-        self.size_y = (int)(size_y / spatial_dist + 1)
+        self.spatial_dist = round(self.v_env / self.f0 / 3, 3)
+        self.size_x = (int)(size_x / self.spatial_dist + 1)
+        self.size_y = (int)(size_y / self.spatial_dist + 1)
+        self.obstacle = obstacle
         shape = (self.size_x, self.size_y)
-        spacing = (spatial_dist, spatial_dist)
+        spacing = (self.spatial_dist, self.spatial_dist)
         origin = (0.0, 0.0)
-        posy = posy if posy != 0.0 else (
-            (ns - 1) / 2 * self.sdist) / size_y
+        posy = posy if posy != 0.0 else ((ns - 1) / 2 * self.sdist) / size_y
         self.model = Model(
             vp=self.set_bottom(bottom, cx=posx, cy=posy),
             origin=origin,
@@ -61,18 +61,13 @@ class Sonar:
             bcs="damp",
         )
         print(
-            f'spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n'
-            f'dt: {self.model.critical_dt} t: {tn}\n'
-            f'rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}}'
+            f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
+            f"dt: {self.model.critical_dt} t: {self.tn}\n"
+            f"rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}}"
         )
-        (
-            self.src,
-            self.rec,
-            self.time_range,
-            self.center_pos,
-        ) = utils.setup_domain(
+        (self.src, self.rec, self.time_range, self.center_pos,) = utils.setup_domain(
             self.model,
-            tn=tn,
+            tn=self.tn,
             ns=ns,
             f0=self.f0,
             posx=posx,
@@ -80,11 +75,10 @@ class Sonar:
             sdist=self.sdist,
             v_env=self.v_env,
         )
-        print(f'cp: {self.center_pos}, sdist = {self.sdist}')
-        self.u = TimeFunction(name="u",
-                              grid=self.model.grid,
-                              time_order=2,
-                              space_order=2)
+        print(f"cp: {self.center_pos}, sdist = {self.sdist}")
+        self.u = TimeFunction(
+            name="u", grid=self.model.grid, time_order=2, space_order=2
+        )
         pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
         stencil = Eq(self.u.forward, solve(pde, self.u.forward))
         src_term = self.src.inject(
@@ -95,30 +89,30 @@ class Sonar:
 
         save_stencil = []
         if snapshot_delay > 0.0:
-            snapshot_delay_iter = math.ceil(snapshot_delay /
-                                            self.model.critical_dt)
+            snapshot_delay_iter = math.ceil(snapshot_delay / self.model.critical_dt)
             nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
             time_subsampled = ConditionalDimension(
-                't_sub',
-                parent=self.model.grid.time_dim,
-                factor=snapshot_delay_iter)
-            self.usave = TimeFunction(name='usave',
-                                      grid=self.model.grid,
-                                      time_order=2,
-                                      space_order=2,
-                                      save=nsnaps,
-                                      time_dim=time_subsampled)
+                "t_sub", parent=self.model.grid.time_dim, factor=snapshot_delay_iter
+            )
+            self.usave = TimeFunction(
+                name="usave",
+                grid=self.model.grid,
+                time_order=2,
+                space_order=2,
+                save=nsnaps,
+                time_dim=time_subsampled,
+            )
             save_stencil.append(Eq(self.usave, self.u))
 
-        self.op = Operator([stencil] + save_stencil + src_term + rec_term,
-                           subs=self.model.spacing_map,
-                           openmp=True)
+        self.op = Operator(
+            [stencil] + save_stencil + src_term + rec_term,
+            subs=self.model.spacing_map,
+            openmp=True,
+        )
 
-    def set_bottom(self,
-                   bottom: utils.Bottom,
-                   cx: float,
-                   cy: float,
-                   v_wall: float = 3.24) -> npt.NDArray:
+    def set_bottom(
+        self, bottom: utils.Bottom, cx: float, cy: float, v_wall: float = 3.24
+    ) -> npt.NDArray:
         """Set the bottom of the water tank.
 
         Args:
@@ -132,12 +126,31 @@ class Sonar:
             b = (int)((nz - 1) / 2)
             for i in range(nx):
                 for j in range(nz):
-                    if ((i - a)**2 / a**2 + (j - b)**2 / b**2) > 1:
+                    if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
                         v[i, j] = v_wall
+            if self.obstacle:
+                r = v.shape[0] / 100
+                for i in range(1, nx, 4):
+                    for j in range(1, nz, 4):
+                        if (
+                            1 - 1e-2
+                            < ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2)
+                            < 1 + 1e-2
+                        ):
+                            y, x = np.ogrid[-i : v.shape[0] - i, -j : v.shape[1] - j]
+                            v[x * x + y * y <= r * r] = v_wall
             v[:, :b] = self.v_env
         elif bottom == utils.Bottom.flat:
-            y_wall = max(int(self.size_y * 0.8), self.size_y - 50)
+            y_wall = max(
+                int(self.size_y * 0.8), round(self.size_y - 5 / self.spatial_dist)
+            )
             v[:, y_wall:] = v_wall
+            if self.obstacle:
+                r = v.shape[0] / 100
+                for i in range(1, 101, 2):
+                    a, b = v.shape[0] / 100 * i, y_wall
+                    y, x = np.ogrid[-a : v.shape[0] - a, -b : v.shape[1] - b]
+                    v[x * x + y * y <= r * r] = v_wall
         elif bottom == utils.Bottom.circle:
             ox = int(cx * self.size_x)
             oy = int(cy * self.size_y)
@@ -145,8 +158,8 @@ class Sonar:
             print(f"R {r}")
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
-            mask = (y[np.newaxis, :] - oy)**2 + (x[:, np.newaxis] -
-                                                 ox)**2 > r**2
+            mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
+
             v[mask] = v_wall
         return v
 
@@ -196,14 +209,15 @@ class Sonar:
         """Plot the model."""
         print(self.rec.data.shape)
         if plot == plotting.PlotType.model:
-            plotting.plot_velocity(self.model, self.src.coordinates.data,
-                                   self.rec.coordinates.data)
+            plotting.plot_velocity(
+                self.model, self.src.coordinates.data, self.rec.coordinates.data
+            )
 
     def run_angles(self, angles: npt.NDArray) -> npt.NDArray:
         """Run the sonar simulation. Plots the results.
 
         Args:
-            angles (NDArray[float]): list of angles to launch beams 
+            angles (NDArray[float]): list of angles to launch beams
         """
         return utils.run_angles(
             self.model,
@@ -220,15 +234,17 @@ class Sonar:
     def parse_and_plot(self, angles, recordings):
         distances = np.zeros(angles.shape)
         for i, (alpha, rec) in enumerate(zip(angles, recordings)):
-            distances[i], _ = utils.object_distance(np.average(rec, axis=1),
-                                                    self.model.critical_dt,
-                                                    self.v_env)
+            distances[i], _ = utils.object_distance(
+                np.average(rec, axis=1), self.model.critical_dt, self.v_env
+            )
 
         abs_coords = utils.calculate_coordinates_from_pos(
-            rec_pos=self.center_pos, angle=angles, distance=distances)
+            rec_pos=self.center_pos, angle=angles, distance=distances
+        )
 
         plotting.compare_velocity_to_measure(
             self.model,
             abs_coords,
             source=self.src.coordinates.data,
-            receiver=self.rec.coordinates.data)
+            receiver=self.rec.coordinates.data,
+        )
