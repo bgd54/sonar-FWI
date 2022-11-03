@@ -40,7 +40,7 @@ class Sonar:
         """
         self.f0 = f0
         self.v_env = v_env
-        self.tn = 10 * f0 / (utils.find_exp(f0) ** 2)
+        self.tn = size_y / v_env * 3
         self.sdist = source_distance
         print(f"{self.v_env} / {self.f0} / 3 ")
         self.spatial_dist = round(self.v_env / self.f0 / 3, 3)
