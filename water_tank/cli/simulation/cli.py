@@ -60,7 +60,7 @@ def beams(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
-    obstacle: bool = typer.Option(False, "-o"),
+    obstacle: bool = typer.Option(False, "--obstacle"),
     start_angle: float = typer.Option(30.0, "-a", help="First angle for a beam."),
     last_angle: float = typer.Option(150.0, "-e", help="Last angle for a beam."),
     angle_step: float = typer.Option(1.0, "-s", help="Step size for angles"),
@@ -182,7 +182,7 @@ def snaps(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
-    obstacle: bool = typer.Option(False, "-o"),
+    obstacle: bool = typer.Option(False, "--obstacle"),
     alpha: float = typer.Option(80, "-a", help="Angle of the beam"),
     snaps_rate: float = typer.Option(0.1, "-s", help="Time between snapshots (ms)"),
     outfile: str = typer.Option(
