@@ -71,7 +71,7 @@ class Sonar:
         )
         print(
             f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
-            f"dt: {self.model.critical_dt} t: {tn}\n"
+            f"dt: {self.model.critical_dt} t: {self.tn}\n"
             f"rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}} cp: {self.center_pos}, sdist = {self.sdist}"
         )
         self.u = TimeFunction(
