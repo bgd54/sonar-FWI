@@ -40,7 +40,6 @@ class Sonar:
         """
         self.f0 = f0
         self.v_env = v_env
-        self.tn = max(size_x, size_y) / v_env * 3
         self.sdist = source_distance
         self.spatial_dist = round(self.v_env / self.f0 / 3, 3)
         self.size_x = (int)(size_x / self.spatial_dist + 1)
@@ -50,6 +49,11 @@ class Sonar:
         spacing = (self.spatial_dist, self.spatial_dist)
         origin = (0.0, 0.0)
         posy = posy if posy != 0.0 else ((ns - 1) / 2 * self.sdist) / size_y
+        travel_distance = math.sqrt(
+            (size_x * (posx if posx >= 0.5 else 1 - posx)) ** 2
+            + (size_y * (posy if posy >= 0.5 else 1 - posy)) ** 2
+        )
+        self.tn = travel_distance * 2 / v_env + 5
         self.model = Model(
             vp=self.set_bottom(bottom, cx=posx, cy=posy),
             origin=origin,
