@@ -90,7 +90,6 @@ def compare_velocity_to_measure(model,
         cax = divider.append_axes("right", size="5%", pad=0.05)
         cbar = plt.colorbar(plot, cax=cax)
         cbar.set_label("Velocity (km/s)")
-    plt.show()
 
 
 def plot_shotrecord2(recording, cutoff=600):

@@ -141,7 +141,10 @@ def analyse(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
-    obstacle: bool = typer.Option(False, "-o"),
+    obstacle: bool = typer.Option(False, "--obstacle"),
+    outfile: str = typer.Option(
+        "./plot.png", "-o", help="Output file to save figure to."
+    ),
     in_file: str = typer.Option(
         "./beams.npy", "-i", help="input file to load recordings"
     ),
@@ -163,6 +166,7 @@ def analyse(
         angles = np.load(fin)
         recordings = np.load(fin)
     s.parse_and_plot(angles, recordings)
+    plt.savefig(output)
 
 
 @app.command()
