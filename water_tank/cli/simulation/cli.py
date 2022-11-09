@@ -26,6 +26,7 @@ def run(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
+    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
     obstacle: bool = typer.Option(False, "-o"),
 ):
     """Initialize the sonar class and run the simulation."""
@@ -40,6 +41,7 @@ def run(
         bottom,
         source_distance,
         obstacle=obstacle,
+        r=r,
     )
     s.run_position_angles(5, 10, 5)
     plt.show()
@@ -62,6 +64,7 @@ def beams(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
+    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
     obstacle: bool = typer.Option(False, "--obstacle"),
     start_angle: float = typer.Option(30.0, "-a", help="First angle for a beam."),
     last_angle: float = typer.Option(150.0, "-e", help="Last angle for a beam."),
@@ -82,6 +85,7 @@ def beams(
         bottom,
         source_distance,
         obstacle=obstacle,
+        r=r,
     )
     angles = np.arange(start_angle, last_angle, angle_step)
     recordings = s.run_angles(angles)

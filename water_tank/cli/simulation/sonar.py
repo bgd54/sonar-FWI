@@ -27,6 +27,7 @@ class Sonar:
         source_distance: float,
         snapshot_delay: float = 0.0,
         obstacle: bool = False,
+        r: float = 28.0,
     ) -> None:
         """Initialize the sonar class.
 
@@ -57,7 +58,7 @@ class Sonar:
         )
         self.tn = travel_distance * 2 / v_env + 5
         self.model = Model(
-            vp=self.set_bottom(bottom, cx=posx, cy=posy),
+            vp=self.set_bottom(bottom, cx=posx, cy=posy, r=r),
             origin=origin,
             spacing=spacing,
             shape=shape,
@@ -80,6 +81,10 @@ class Sonar:
             f"dt: {self.model.critical_dt} t: {self.tn}\n"
             f"rec_pos {{{posx}, {posy}}} -> {{{posx*size_x}, {posy * size_y}}} cp: {self.center_pos}, sdist = {self.sdist}"
         )
+        if bottom == utils.Bottom.circle:
+            print(f"{bottom} {r}")
+        else:
+            print(f"{bottom} o: {self.obstacle}")
         self.u = TimeFunction(
             name="u", grid=self.model.grid, time_order=2, space_order=2
         )
@@ -115,7 +120,12 @@ class Sonar:
         )
 
     def set_bottom(
-        self, bottom: utils.Bottom, cx: float, cy: float, v_wall: float = 3.24
+        self,
+        bottom: utils.Bottom,
+        cx: float,
+        cy: float,
+        v_wall: float = 3.24,
+        r: float = None,
     ) -> npt.NDArray:
         """Set the bottom of the water tank.
 
@@ -159,8 +169,7 @@ class Sonar:
         elif bottom == utils.Bottom.circle:
             ox = int(cx * self.size_x)
             oy = int(cy * self.size_y)
-            r = self.size_y - oy - 10
-            print(f"R {r}")
+            r = round(r / self.spatial_dist)
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
             mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
