@@ -132,29 +132,31 @@ class Sonar:
         Args:
             bottom (Enum): Bottom of the water tank.
         """
-
         v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
         if bottom == utils.Bottom.ellipsis:
             nx = self.size_x
             nz = self.size_y
-            a = (int)((nx - 1) / 2)
-            b = (int)((nz - 1) / 2)
-            for i in tqdm.tqdm(range(nx)):
-                for j in range(nz):
-                    if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
-                        v[i, j] = v_wall
+            offs = round((1 / self.spatial_dist) / 2)
+            a = round((nx - (1 / self.spatial_dist)) / 2)
+            b = round((nz - (1 / self.spatial_dist)) / 2)
+            x = np.arange(0, v.shape[0])
+            y = np.arange(0, v.shape[1])
+            mask = (y[np.newaxis, :] - offs - b) ** 2 / b**2 + (
+                x[:, np.newaxis] - offs - a
+            ) ** 2 / a**2 > 1
+            v[mask] = v_wall
             if self.obstacle:
                 r = v.shape[0] / 100
-                for i in tqdm.tqdm(range(1, nx, 4)):
-                    for j in range(1, nz, 4):
-                        if (
-                            1 - 1e-2
-                            < ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2)
-                            < 1 + 1e-2
-                        ):
-                            y, x = np.ogrid[-i : v.shape[0] - i, -j : v.shape[1] - j]
-                            v[x * x + y * y <= r * r] = v_wall
-            v[:, :b] = self.v_env
+                ox = np.arange(offs, 2 * a + offs + 1, 2 * a / 50)
+                oy = np.sqrt(1 - (ox - a - offs) ** 2 / a**2) * b + offs + b
+                x = np.arange(0, v.shape[0])
+                y = np.arange(0, v.shape[1])
+                for oxx, oyy in tqdm.tqdm(zip(ox, oy)):
+                    mask = (y[np.newaxis, :] - oyy) ** 2 + (
+                        x[:, np.newaxis] - oxx
+                    ) ** 2 < r**2
+                    v[mask] = v_wall
+            v[offs:-offs, :b] = self.v_env
         elif bottom == utils.Bottom.flat:
             y_wall = max(
                 int(self.size_y * 0.8), round(self.size_y - 5 / self.spatial_dist)
@@ -162,7 +164,7 @@ class Sonar:
             v[:, y_wall:] = v_wall
             if self.obstacle:
                 r = v.shape[0] / 100
-                for i in range(1, 101, 2):
+                for i in tqdm.tqdm(range(1, 101, 2)):
                     a, b = v.shape[0] / 100 * i, y_wall
                     y, x = np.ogrid[-a : v.shape[0] - a, -b : v.shape[1] - b]
                     v[x * x + y * y <= r * r] = v_wall
@@ -173,9 +175,7 @@ class Sonar:
             x = np.arange(0, v.shape[0])
             y = np.arange(0, v.shape[1])
             mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
-
             v[mask] = v_wall
-
         return v
 
     def run_position_angles(
