@@ -1,5 +1,7 @@
 """This module provides the sonar class for the water tank project."""
 import math
+import time
+import tqdm
 
 import numpy as np
 import numpy.typing as npt
@@ -120,19 +122,20 @@ class Sonar:
         Args:
             bottom (Enum): Bottom of the water tank.
         """
+
         v = np.full((self.size_x, self.size_y), self.v_env, dtype=np.float32)
         if bottom == utils.Bottom.ellipsis:
             nx = self.size_x
             nz = self.size_y
             a = (int)((nx - 1) / 2)
             b = (int)((nz - 1) / 2)
-            for i in range(nx):
+            for i in tqdm.tqdm(range(nx)):
                 for j in range(nz):
                     if ((i - a) ** 2 / a**2 + (j - b) ** 2 / b**2) > 1:
                         v[i, j] = v_wall
             if self.obstacle:
                 r = v.shape[0] / 100
-                for i in range(1, nx, 4):
+                for i in tqdm.tqdm(range(1, nx, 4)):
                     for j in range(1, nz, 4):
                         if (
                             1 - 1e-2
@@ -163,6 +166,7 @@ class Sonar:
             mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
 
             v[mask] = v_wall
+
         return v
 
     def run_position_angles(
@@ -234,9 +238,12 @@ class Sonar:
 
     def parse_and_plot(self, angles, recordings):
         distances = np.zeros(angles.shape)
-        for i, (alpha, rec) in enumerate(zip(angles, recordings)):
-            distances[i], _ = utils.object_distance(
-                np.average(rec, axis=1), self.model.critical_dt, self.v_env
+        for i, (alpha, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+            distances[i], _ = utils.echo_distance(
+                np.average(rec, axis=1),
+                self.model.critical_dt,
+                self.src.signal_packet,
+                self.v_env,
             )
 
         abs_coords = utils.calculate_coordinates_from_pos(

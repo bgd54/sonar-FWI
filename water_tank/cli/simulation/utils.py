@@ -101,6 +101,10 @@ class SineSource(WaveletSource):
         wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
         return wave
 
+    @property
+    def signal_packet(self):
+        return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
+
 
 def setup_domain(
     model,
@@ -207,6 +211,42 @@ def object_distance(
     distance = object_distance_iter(first_peak, timestep, v_env)
     #  print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
     return distance, receiver[first_peak]
+
+
+def detect_echo_after(
+    recording,
+    timestep: float,
+    v_env: float,
+    signal: npt.NDArray,
+    cut_iter: int = None,
+    cut_ms: float = None,
+):
+    if cut_iter is None:
+        cut_iter = round(cut_ms / timestep)
+    correlation = np.correlate(recording[cut_iter:], signal)
+    return cut_iter + correlation.argmax() - signal.shape[0]
+
+
+def echo_distance(
+    receiver, timestep: float, signal: npt.NDArray, v_env: float, cut_ms: float = None
+) -> tuple[float, float]:
+    """
+    Calculate the distance of the object from the receiver.
+
+    Args:
+        receiver (npt.NDArray): Received signal.
+        timestep (float): Timestep of the simulation.
+        signal (npt.NDArray): Original signal.
+        v_env (float): Velocity of the water.
+        cut_ms (float): Time to mask echos from.
+
+    Returns:
+        tuple[float, float]: Distance of the object from the receiver and the time of the peak.
+    """
+    cut_ms = cut_ms or 2 * signal.shape[0] * timestep
+    echo = detect_echo_after(receiver, timestep, v_env, signal, cut_ms=cut_ms)
+    distance = object_distance_iter(echo, timestep, v_env)
+    return distance, receiver[echo]
 
 
 def setup_beam(src, rec, u, source_distance, center_pos, alpha):

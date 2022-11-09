@@ -1,5 +1,6 @@
 import numpy as np
 import typer
+import matplotlib.pyplot as plt
 
 from simulation.plotting import PlotType, plot_snapshot_and_signal
 from simulation.sonar import Sonar
@@ -41,6 +42,7 @@ def run(
         obstacle=obstacle,
     )
     s.run_position_angles(5, 10, 5)
+    plt.show()
 
 
 @app.command()
@@ -166,7 +168,7 @@ def analyse(
         angles = np.load(fin)
         recordings = np.load(fin)
     s.parse_and_plot(angles, recordings)
-    plt.savefig(output)
+    plt.savefig(outfile)
 
 
 @app.command()
