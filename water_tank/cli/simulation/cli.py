@@ -147,6 +147,7 @@ def analyse(
         0.2, "-d", help="Distance between sources (m)"
     ),
     bottom: Bottom = Bottom.ellipsis,
+    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
     obstacle: bool = typer.Option(False, "--obstacle"),
     outfile: str = typer.Option(
         "./plot.png", "-o", help="Output file to save figure to."
@@ -167,6 +168,7 @@ def analyse(
         bottom,
         source_distance,
         obstacle=obstacle,
+        r=r,
     )
     with open(in_file, "rb") as fin:
         angles = np.load(fin)
