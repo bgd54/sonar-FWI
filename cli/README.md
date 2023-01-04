@@ -1,9 +1,7 @@
-# sonar-FWI
+# Sonar Simulation
+This project aims to develop a simulational environment for exploring river beds using sonar signals.
 
-This project aims to develop a simulation environment for exploring river beds using sonar signals. Our work focuses on developing a parallel implementation in [Devito](https://www.devitoproject.org/) that can simulate the propagation and detection of the reflected signals.
-
-## CLI
-
+## Usage
 You can run the following command to access the application's usage description:
 
 ```bash
@@ -22,20 +20,19 @@ Options:
   --help                          Show this message and exit.
 
 Commands:
-  plot     Display different plots.
-  beams    Run the simulation in different beam angles.
-  analyse  Takes the angles and recordings and creates a plot.
-  snaps    Create an animation of the snapshots.
-  run      Initialize the sonar class.
+  run  Initialize the sonar class.
 ```
 
 You can run the following command to access the `run` command's usage description:
 
 ```bash
 $ python -m simulation run --help
-Usage: sonar run [OPTIONS]
+Usage: sonar run [OPTIONS] [TN]
 
-  Initialize the sonar class and run the simulation.
+  Initialize the sonar class.
+
+Arguments:
+  [TN]  End time of the simulation. (ms)  [default: -t]
 
 Options:
   -x INTEGER  Size in x direction. (m)  [default: 60]
@@ -47,12 +44,5 @@ Options:
               0.5]
   -py FLOAT   Position of the source in y direction. (relative)  [default:
               0.5]
-  -d  FLOAT   Distance between sources (m) [default: 0.2]
-  --bottom [flat|ellipsis|circle] [default: Bottom.ellipsis]
-  -r FLOAT    Radius of the bottom circle. (m) [default: 28.0]
-  -o          Obstacle flag. [default: False]
   --help      Show this message and exit.
 ```
-
-## Notebooks
-A series of Jupyter notebooks of incremental complexity are available in the `notebooks` folder. They are intended to show how the simulation works and how to use the different functions.

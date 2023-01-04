@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+authors:
+- family-names: "Reguly"
+  given-name: "Istvan Zoltan"
+- family-names: "Balogh"
+  given-names: "Gabor Daniel"
+- family-names: "Hajdara"
+  given-names: "Tamas"
+title: "sonar-FWI"
+version: 1.0.0
+url: "https://github.com/bgd54/sonar-FWI"
