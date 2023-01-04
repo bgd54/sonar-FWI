@@ -177,6 +177,52 @@ def analyse(
     plt.savefig(outfile)
 
 
+def analyse_prom(
+    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
+    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
+    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    ns: int = typer.Option(128, "-n", help="Number of sources."),
+    posx: float = typer.Option(
+        0.5, "-px", help="Position of the source in x direction. (relative)"
+    ),
+    posy: float = typer.Option(
+        0.0, "-py", help="Position of the source in y direction. (relative)"
+    ),
+    source_distance: float = typer.Option(
+        0.2, "-d", help="Distance between sources (m)"
+    ),
+    bottom: Bottom = Bottom.ellipsis,
+    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
+    obstacle: bool = typer.Option(False, "--obstacle"),
+    outfile: str = typer.Option(
+        "./plot.png", "-o", help="Output file to save figure to."
+    ),
+    in_file: str = typer.Option(
+        "./beams.npy", "-i", help="input file to load recordings"
+    ),
+):
+    """Initialize the sonar class."""
+    s = Sonar(
+        size_x,
+        size_y,
+        f0,
+        v_env,
+        ns,
+        posx,
+        posy,
+        bottom,
+        source_distance,
+        obstacle=obstacle,
+        r=r,
+    )
+    with open(in_file, "rb") as fin:
+        angles = np.load(fin)
+        recordings = np.load(fin)
+    print(s.parse_and_plot_prom(angles, recordings))
+    plt.savefig(outfile)
+
+
 @app.command()
 def snaps(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),

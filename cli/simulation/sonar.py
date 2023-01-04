@@ -48,6 +48,7 @@ class Sonar:
         self.size_x = (int)(size_x / self.spatial_dist + 1)
         self.size_y = (int)(size_y / self.spatial_dist + 1)
         self.obstacle = obstacle
+        self.real_dist = np.zeros(121)
         shape = (self.size_x, self.size_y)
         spacing = (self.spatial_dist, self.spatial_dist)
         origin = (0.0, 0.0)
@@ -149,6 +150,9 @@ class Sonar:
                 r = v.shape[0] / 100
                 ox = np.arange(offs, 2 * a + offs + 1, 2 * a / 50)
                 oy = np.sqrt(1 - (ox - a - offs) ** 2 / a**2) * b + offs + b
+                for i in range(0, 61):
+                    self.real_dist[i] = 33.5 - i * (5 / 60)
+                    self.real_dist[120 - i - 1] = self.real_dist[i]
                 x = np.arange(0, v.shape[0])
                 y = np.arange(0, v.shape[1])
                 for oxx, oyy in tqdm.tqdm(zip(ox, oy)):
@@ -176,6 +180,7 @@ class Sonar:
             y = np.arange(0, v.shape[1])
             mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
             v[mask] = v_wall
+            self.real_dist = np.full(121, 27)
         return v
 
     def run_position_angles(
@@ -253,7 +258,10 @@ class Sonar:
                 self.model.critical_dt,
                 self.src.signal_packet,
                 self.v_env,
+                cut_ms=10.0,
             )
+
+        mse = np.square(np.subtract(self.real_dist, distances)).mean()
 
         abs_coords = utils.calculate_coordinates_from_pos(
             rec_pos=self.center_pos, angle=angles, distance=distances
@@ -265,3 +273,27 @@ class Sonar:
             source=self.src.coordinates.data,
             receiver=self.rec.coordinates.data,
         )
+
+        return mse
+
+    def parse_and_plot_prom(self, angles, recordings):
+        distances = np.zeros(angles.shape)
+        for i, (alpha, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+            distances[i], _ = utils.object_distance(
+                np.average(rec, axis=1), self.model.critical_dt, self.v_env
+            )
+
+        mse = np.square(np.subtract(self.real_dist, distances)).mean()
+
+        abs_coords = utils.calculate_coordinates_from_pos(
+            rec_pos=self.center_pos, angle=angles, distance=distances
+        )
+
+        plotting.compare_velocity_to_measure(
+            self.model,
+            abs_coords,
+            source=self.src.coordinates.data,
+            receiver=self.rec.coordinates.data,
+        )
+
+        return mse

@@ -207,7 +207,7 @@ def object_distance(
     Returns:
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
-    first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=cut_ms)
+    first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=10.0)
     distance = object_distance_iter(first_peak, timestep, v_env)
     #  print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
     return distance, receiver[first_peak]

@@ -19,12 +19,9 @@ class PlotType(str, Enum):
     signal = "signal"
 
 
-def compare_velocity_to_measure(model,
-                                result_coords,
-                                source=None,
-                                receiver=None,
-                                colorbar=True,
-                                cmap="jet"):
+def compare_velocity_to_measure(
+    model, result_coords, source=None, receiver=None, colorbar=True, cmap="jet"
+):
     """
     Plot the velocity of the water and the measured distance of the object from the receiver.
 
@@ -62,26 +59,20 @@ def compare_velocity_to_measure(model,
 
     # Plot source points, if provided
     if receiver is not None:
-        plt.scatter(receiver[:, 0],
-                    receiver[:, 1],
-                    s=25,
-                    c="green",
-                    marker="D")
+        plt.scatter(receiver[:, 0], receiver[:, 1], s=25, c="green", marker="D")
 
     # Plot receiver points, if provided
     if source is not None:
         plt.scatter(source[:, 0], source[:, 1], s=25, c="red", marker="o")
-    plt.scatter(result_coords[:, 0],
-                result_coords[:, 1],
-                s=25,
-                c="red",
-                marker="o")
+    plt.scatter(result_coords[:, 0], result_coords[:, 1], s=25, c="red", marker="o")
 
     # Ensure axis limits
-    plt.xlim(model.origin[0] - domain_size[0] * 0.1,
-             model.origin[0] + domain_size[0] * 1.1)
-    plt.ylim(model.origin[1] + domain_size[1] * 1.1,
-             model.origin[1] - domain_size[1] * 0.1)
+    plt.xlim(
+        model.origin[0] - domain_size[0] * 0.1, model.origin[0] + domain_size[0] * 1.1
+    )
+    plt.ylim(
+        model.origin[1] + domain_size[1] * 1.1, model.origin[1] - domain_size[1] * 0.1
+    )
 
     # Create aligned colorbar on the right
     if colorbar:
@@ -99,12 +90,9 @@ def plot_shotrecord2(recording, cutoff=600):
     X, Y = np.meshgrid(X, Y)
 
     # Plot the surface.
-    surf = ax.plot_surface(X,
-                           Y,
-                           recording[cutoff:],
-                           cmap=mpl.cm.coolwarm,
-                           linewidth=0,
-                           antialiased=False)
+    surf = ax.plot_surface(
+        X, Y, recording[cutoff:], cmap=mpl.cm.coolwarm, linewidth=0, antialiased=False
+    )
 
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=5)
@@ -112,10 +100,9 @@ def plot_shotrecord2(recording, cutoff=600):
     plt.show()
 
 
-def peaks(receiver,
-          timestep: float,
-          v_env: float,
-          cut: int = 600) -> tuple[np.typing.NDArray, np.typing.NDArray]:
+def peaks(
+    receiver, timestep: float, v_env: float, cut: int = 600
+) -> tuple[np.typing.NDArray, np.typing.NDArray]:
     x = receiver[cut:]
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
@@ -127,8 +114,7 @@ def dist_to_peak(peak: int, timestep: float, v_env: float) -> float:
 
 
 def first_peak(peaks: tuple[np.typing.NDArray, np.typing.NDArray]) -> int:
-    first_peak = peaks[0][(peaks[1] -
-                           np.average(peaks[1])) > np.std(peaks[1])][0]
+    first_peak = peaks[0][(peaks[1] - np.average(peaks[1])) > np.std(peaks[1])][0]
     return first_peak
 
 
@@ -137,18 +123,14 @@ def plot_signal(sig, timestep, v, ax, cut=600):
     peaks, _ = find_peaks(x)
     prominences = peak_prominences(x, peaks)[0]
     first_peak = (
-        cut +
-        peaks[(prominences - np.average(prominences)) > np.std(prominences)])
+        cut + peaks[(prominences - np.average(prominences)) > np.std(prominences)]
+    )
     ax.plot(sig)
     ax.plot(cut + peaks, sig[cut + peaks], "ro")
     ax.plot(first_peak, sig[first_peak], "bx")
 
 
-def plot_velocity(model,
-                  source=None,
-                  receiver=None,
-                  colorbar=True,
-                  cmap="jet"):
+def plot_velocity(model, source=None, receiver=None, colorbar=True, cmap="jet"):
     """
     Plot a two-dimensional velocity field from a seismic `Model`
     object. Optionally also includes point markers for sources and receivers.
@@ -190,19 +172,13 @@ def plot_velocity(model,
 
     # Plot source points, if provided
     if receiver is not None:
-        plt.scatter(1e-3 * receiver[:, 0],
-                    1e-3 * receiver[:, 1],
-                    s=25,
-                    c="green",
-                    marker="D")
+        plt.scatter(
+            1e-3 * receiver[:, 0], 1e-3 * receiver[:, 1], s=25, c="green", marker="D"
+        )
 
     # Plot receiver points, if provided
     if source is not None:
-        plt.scatter(1e-3 * source[:, 0],
-                    1e-3 * source[:, 1],
-                    s=25,
-                    c="red",
-                    marker="o")
+        plt.scatter(1e-3 * source[:, 0], 1e-3 * source[:, 1], s=25, c="red", marker="o")
 
     # Ensure axis limits
     plt.xlim(model.origin[0], model.origin[0] + domain_size[0])
@@ -218,20 +194,16 @@ def plot_velocity(model,
     plt.show()
 
 
-def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
-                             outfile):
+def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model, outfile):
     dt = model.critical_dt
     v_env = model.vp.data[int(model.vp.data.shape[0] / 2), 0]
     snap_step = int(recording.shape[0] / snap.shape[0])
     aline_data = np.average(recording.data, axis=1)
-    first_peak = utils.first_peak_after(aline_data, dt, v_env, cut_ms=2.0)
+    first_peak = utils.first_peak_after(aline_data, dt, v_env, cut_ms=10.0)
 
-    fig, axs = plt.subplots(2,
-                            1,
-                            gridspec_kw={
-                                'width_ratios': [1],
-                                'height_ratios': [2, 1]
-                            })
+    fig, axs = plt.subplots(
+        2, 1, gridspec_kw={"width_ratios": [1], "height_ratios": [2, 1]}
+    )
     extent = [
         model.origin[0],
         model.origin[0] + model.domain_size[0],
@@ -240,7 +212,7 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
     ]
     axs[0].imshow(
         np.transpose(model.vp.data),
-        cmap='viridis',
+        cmap="viridis",
         vmin=np.min(model.vp.data),
         vmax=np.max(model.vp.data),
         extent=extent,
@@ -248,25 +220,32 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
 
     ampl_limit = max(abs(np.min(snap)), abs(np.max(snap)))
 
-    matrice = axs[0].imshow(snap[0, :, :].T,
-                            vmin=-ampl_limit,
-                            vmax=ampl_limit,
-                            alpha=.6,
-                            extent=extent,
-                            cmap="seismic")
+    matrice = axs[0].imshow(
+        snap[0, :, :].T,
+        vmin=-ampl_limit,
+        vmax=ampl_limit,
+        alpha=0.6,
+        extent=extent,
+        cmap="seismic",
+    )
     fig.colorbar(matrice, ax=axs[0])
-    aline, = axs[1].plot(aline_data[:1])
-    detection, = axs[1].plot([], [], "rx")
-    label = axs[1].text(2000, 0.0004, f"t=0")
+    (aline,) = axs[1].plot(aline_data[:1])
+    (detection,) = axs[1].plot([], [], "rx")
+    # label = axs[1].text(2000, 0.0004, f"t=0")
 
     axs[0].set(xlabel="X position (m)", ylabel="Depth (m)")
     axs[1].set_xlim(0, aline_data.shape[0])
-    axs[1].set_ylim(1.1 * np.min(np.average(recording.data, axis=1)),
-                    1.1 * np.max(np.average(recording.data, axis=1)))
+    axs[1].set_ylim(
+        1.1 * np.min(np.average(recording.data, axis=1)),
+        1.1 * np.max(np.average(recording.data, axis=1)),
+    )
     ticks = utils.num_iter_for_distance(
         np.arange(
-            0, round(utils.object_distance_iter(aline_data.shape[0], dt,
-                                                v_env)), 2), dt, v_env)
+            0, round(utils.object_distance_iter(aline_data.shape[0], dt, v_env)), 2
+        ),
+        dt,
+        v_env,
+    )
     par1 = axs[1].twiny()
     par1.set_xlabel("Distance (m)")
     par1.set_xticks(ticks)
@@ -276,20 +255,23 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
 
     def update(i):
         matrice.set_array(snap[i, :, :].T)
-        aline.set_data(np.arange(i * snap_step), aline_data[:i * snap_step])
+        aline.set_data(np.arange(i * snap_step), aline_data[: i * snap_step])
         if i * snap_step > first_peak:
             detection.set_data(first_peak, aline_data[first_peak])
         else:
             detection.set_data([], [])
 
-        label.set_text(f"t={i*snap_step*dt:.4f} ms")
-        return matrice, aline, detection, label,
+        # label.set_text(f"t={i*snap_step*dt:.4f} ms")
+        return (
+            matrice,
+            aline,
+            detection,
+            # label,
+        )
 
     # Animation
-    ani = animation.FuncAnimation(fig,
-                                  func=update,
-                                  frames=snap.shape[0],
-                                  interval=75,
-                                  blit=True)
+    ani = animation.FuncAnimation(
+        fig, func=update, frames=snap.shape[0], interval=75, blit=True
+    )
     ani.save(outfile)
     plt.show()
