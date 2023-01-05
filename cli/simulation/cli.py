@@ -176,7 +176,7 @@ def analyse(
     s.parse_and_plot(angles, recordings)
     plt.savefig(outfile)
 
-
+@app.command()
 def analyse_prom(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),

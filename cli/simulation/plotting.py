@@ -64,7 +64,7 @@ def compare_velocity_to_measure(
     # Plot receiver points, if provided
     if source is not None:
         plt.scatter(source[:, 0], source[:, 1], s=25, c="red", marker="o")
-    plt.scatter(result_coords[:, 0], result_coords[:, 1], s=25, c="red", marker="o")
+    plt.scatter(result_coords[:, 0], result_coords[:, 1], s=25, c="black", marker="x")
 
     # Ensure axis limits
     plt.xlim(
