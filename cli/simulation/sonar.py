@@ -77,6 +77,7 @@ class Sonar:
             sdist=self.sdist,
             v_env=self.v_env,
         )
+        plotting.plot_velocity(model=self.model)
         print(
             f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
             f"dt: {self.model.critical_dt} t: {self.tn}\n"

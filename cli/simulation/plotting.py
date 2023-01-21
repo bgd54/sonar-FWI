@@ -191,6 +191,7 @@ def plot_velocity(model, source=None, receiver=None, colorbar=True, cmap="jet"):
         cax = divider.append_axes("right", size="5%", pad=0.05)
         cbar = plt.colorbar(plot, cax=cax)
         cbar.set_label("Velocity (km/s)")
+    plt.savefig("velocity.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 
