@@ -243,6 +243,7 @@ class Sonar:
             self.time_range,
             center=self.center_pos,
             angle=angles,
+            v_env=self.v_env
         )
 
     def parse_and_plot(self, angles, recordings):
