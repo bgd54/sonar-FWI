@@ -262,7 +262,8 @@ def setup_beam(src, rec, u, source_distance, center_pos, alpha, dt, c):
     ns = src.coordinates.data.shape[0]
     for i in range(ns):
         src.coordinates.data[i, :] = np.array(
-            center_pos[0] + (i - (ns - 1) / 2) * source_distance)
+            center_pos[0] + (i - (ns - 1) / 2) * source_distance
+        )
     src.coordinates.data[:, -1] = center_pos[1]
     rec.coordinates.data[:] = src.coordinates.data[:]
     for i in range(ns):
@@ -320,7 +321,16 @@ def run_positions_angles(
             start = time.time()
 
             run_beam(
-                model, src, rec, op, u, source_distance, time_range, center_pos, alpha, v_env
+                model,
+                src,
+                rec,
+                op,
+                u,
+                source_distance,
+                time_range,
+                center_pos,
+                alpha,
+                v_env,
             )
 
             res[j] = rec.data
@@ -365,7 +375,9 @@ def run_angles(
     res = np.zeros((angle.shape[0], rec.data.shape[0], rec.data.shape[1]))
     for j, alpha in enumerate(angle):
         start = time.time()
-        run_beam(model, src, rec, op, u, source_distance, time_range, center, alpha, v_env)
+        run_beam(
+            model, src, rec, op, u, source_distance, time_range, center, alpha, v_env
+        )
         res[j] = rec.data
         print(f"Iteration alpha={alpha} took: {time.time() - start}")
     return res
