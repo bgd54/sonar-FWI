@@ -267,8 +267,8 @@ def setup_beam(src, rec, u, source_distance, center_pos, alpha, dt, c):
     src.coordinates.data[:, -1] = center_pos[1]
     rec.coordinates.data[:] = src.coordinates.data[:]
     for i in range(ns):
-        latency = -np.tan(alpha) * (i * source_distance / c)
-        src.data[:, i] = np.roll(src.data[:, i], -int(latency / dt))
+        latency = -np.tan(np.deg2rad(alpha)) * (i * source_distance / c)
+        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt))
     u.data.fill(0)
 
 
