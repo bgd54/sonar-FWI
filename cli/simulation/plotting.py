@@ -224,7 +224,7 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
     v_env = model.vp.data[int(model.vp.data.shape[0] / 2), 0]
     snap_step = int(recording.shape[0] / snap.shape[0])
     aline_data = np.average(recording.data, axis=1)
-    first_peak = utils.first_peak_after(aline_data, dt, v_env, cut_ms=2.0)
+    first_peak = utils.first_peak_after(aline_data, dt, cut_ms=2.0)
 
     fig, axs = plt.subplots(2,
                             1,

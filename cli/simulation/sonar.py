@@ -1,10 +1,10 @@
 """This module provides the sonar class for the water tank project."""
 import math
-import time
 import tqdm
 
 import numpy as np
 import numpy.typing as npt
+from typing import Optional
 from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
 from examples.seismic import Model
 
@@ -74,7 +74,6 @@ class Sonar:
             posx=posx,
             posy=posy,
             sdist=self.sdist,
-            v_env=self.v_env,
         )
         print(
             f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
@@ -125,7 +124,7 @@ class Sonar:
         cx: float,
         cy: float,
         v_wall: float = 3.24,
-        r: float = None,
+        r: Optional[float] = None,
     ) -> npt.NDArray:
         """Set the bottom of the water tank.
 
@@ -169,6 +168,7 @@ class Sonar:
                     y, x = np.ogrid[-a : v.shape[0] - a, -b : v.shape[1] - b]
                     v[x * x + y * y <= r * r] = v_wall
         elif bottom == utils.Bottom.circle:
+            assert r is not None
             ox = int(cx * self.size_x)
             oy = int(cy * self.size_y)
             r = round(r / self.spatial_dist)
@@ -206,7 +206,6 @@ class Sonar:
         )
 
         res2 = utils.calculate_coordinates(
-            self.model.domain_size,
             rec_pos=[self.center_pos],
             angle=angles,
             distance=results[0],
@@ -248,7 +247,7 @@ class Sonar:
 
     def parse_and_plot(self, angles, recordings):
         distances = np.zeros(angles.shape)
-        for i, (alpha, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+        for i, (_, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
             distances[i], _ = utils.echo_distance(
                 np.average(rec, axis=1),
                 self.model.critical_dt,

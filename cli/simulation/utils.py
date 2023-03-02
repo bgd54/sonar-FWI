@@ -7,6 +7,8 @@ import numpy.typing as npt
 from examples.seismic import Receiver, TimeAxis, WaveletSource
 from scipy.signal import find_peaks, peak_prominences
 
+from typing import Optional
+
 
 class Bottom(str, Enum):
     flat = "flat"
@@ -28,7 +30,7 @@ def find_exp(number: float) -> int:
 
 def src_positions(
     cx: float, cy: float, alpha: float, ns: int, sdist: float
-) -> np.typing.NDArray:
+) -> npt.NDArray:
     """
     Create source positions.
 
@@ -40,7 +42,7 @@ def src_positions(
         sdist (float): Distance between sources.
 
     Returns:
-        np.typing.NDArray: Source positions.
+        npt.NDArray: Source positions.
     """
     assert alpha >= 0 and alpha < 180
     assert ns > 0
@@ -60,7 +62,7 @@ def src_positions_in_domain(
     source_distance: float = 0.1,
     ns: int = 128,
     angle: float = 90,
-) -> tuple[np.typing.NDArray, tuple[float, float]]:
+) -> tuple[npt.NDArray, tuple[float, float]]:
     """
     Create the source positions in the domain.
 
@@ -73,7 +75,7 @@ def src_positions_in_domain(
         angle (float): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
 
     Returns:
-        tuple[np.typing.NDArray, tuple[float, float]]: Source positions and the center of the source array.
+        tuple[npt.NDArray, tuple[float, float]]: Source positions and the center of the source array.
     """
     cx = domain_size[0] * posx
     if posy == 0.0:
@@ -110,12 +112,11 @@ def setup_domain(
     model,
     tn=0.05,
     ns=128,
-    f0=5000,
+    f0=5000.0,
     posx=0.5,
     posy=0.0,
     angle=90,
     sdist=0.2,
-    v_env=1.4967,
 ):
     """
     Setup the domain.
@@ -128,7 +129,6 @@ def setup_domain(
         posx (float): Relative position of the center of the source array in x direction.
         posy (float): Relative position of the center of the source array in y direction.
         angle (float): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
-        v_env (float): Velocity of the water.
 
     Returns:
         Source and receiver, center of the source array and wavelength.
@@ -179,18 +179,22 @@ def object_distance_iter(step: int, dt: float, v_env: float):
     return ((step * dt) / 2) * v_env
 
 
-def find_first_peak(recording, timestep: float, v_env: float) -> int:
+def find_first_peak(recording) -> int:
     peaks, _ = find_peaks(recording)
     prominences = peak_prominences(recording, peaks)[0]
     return peaks[(prominences - np.average(prominences)) > np.std(prominences)][0]
 
 
 def first_peak_after(
-    recording, timestep: float, v_env: float, cut_iter: int = None, cut_ms: float = None
+    recording,
+    timestep: float,
+    cut_iter: Optional[int] = None,
+    cut_ms: Optional[float] = None,
 ):
     if cut_iter is None:
+        assert cut_ms is not None
         cut_iter = round(cut_ms / timestep)
-    return cut_iter + find_first_peak(recording[cut_iter:], timestep, v_env)
+    return cut_iter + find_first_peak(recording[cut_iter:])
 
 
 def object_distance(
@@ -207,7 +211,7 @@ def object_distance(
     Returns:
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
-    first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=cut_ms)
+    first_peak = first_peak_after(receiver, timestep, cut_ms=cut_ms)
     distance = object_distance_iter(first_peak, timestep, v_env)
     #  print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
     return distance, receiver[first_peak]
@@ -216,19 +220,23 @@ def object_distance(
 def detect_echo_after(
     recording,
     timestep: float,
-    v_env: float,
     signal: npt.NDArray,
-    cut_iter: int = None,
-    cut_ms: float = None,
+    cut_iter: Optional[int] = None,
+    cut_ms: Optional[float] = None,
 ):
     if cut_iter is None:
+        assert cut_ms is not None
         cut_iter = round(cut_ms / timestep)
     correlation = np.correlate(recording[cut_iter:], signal)
     return cut_iter + correlation.argmax() - signal.shape[0]
 
 
 def echo_distance(
-    receiver, timestep: float, signal: npt.NDArray, v_env: float, cut_ms: float = None
+    receiver,
+    timestep: float,
+    signal: npt.NDArray,
+    v_env: float,
+    cut_ms: Optional[float] = None,
 ) -> tuple[float, float]:
     """
     Calculate the distance of the object from the receiver.
@@ -244,7 +252,7 @@ def echo_distance(
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
     cut_ms = cut_ms or 2 * signal.shape[0] * timestep
-    echo = detect_echo_after(receiver, timestep, v_env, signal, cut_ms=cut_ms)
+    echo = detect_echo_after(receiver, timestep, signal, cut_ms=cut_ms)
     distance = object_distance_iter(echo, timestep, v_env)
     return distance, receiver[echo]
 
@@ -267,7 +275,7 @@ def setup_beam(src, rec, u, source_distance, center_pos, alpha, dt, c):
     src.coordinates.data[:, -1] = center_pos[1]
     rec.coordinates.data[:] = src.coordinates.data[:]
     for i in range(ns):
-        latency = -np.tan(np.deg2rad(alpha)) * (i * source_distance / c)
+        latency = -np.sin(np.deg2rad(alpha)) * (i * source_distance / c)
         src.data[:, i] = np.roll(src.data[:, i], int(latency / dt))
     u.data.fill(0)
 
@@ -383,14 +391,11 @@ def run_angles(
     return res
 
 
-def calculate_coordinates(
-    domain_size, rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]
-):
+def calculate_coordinates(rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]):
     """
     Calculate the coordinates of the object.
 
     Args:
-        domain_size (tuple[float]): Size of the domain.
         rec_pos (tuple[float]): Position of the receiver.
         angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
         distance (list[float]): Distance of the object from the receiver.

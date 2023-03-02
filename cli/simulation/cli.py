@@ -127,7 +127,7 @@ def plot(
         source_distance,
         obstacle=obstacle,
     )
-    s.plot_model(PlotType.model)
+    s.plot_model(plot_type)
 
 
 @app.command()
