@@ -244,6 +244,7 @@ def echo_distance(
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
     cut_ms = cut_ms or 2 * signal.shape[0] * timestep
+    cut_ms += 300 * timestep
     echo = detect_echo_after(receiver, timestep, v_env, signal, cut_ms=cut_ms)
     distance = object_distance_iter(echo, timestep, v_env)
     return distance, receiver[echo]
@@ -267,8 +268,8 @@ def setup_beam(src, rec, u, source_distance, center_pos, alpha, dt, c):
     src.coordinates.data[:, -1] = center_pos[1]
     rec.coordinates.data[:] = src.coordinates.data[:]
     for i in range(ns):
-        latency = -np.tan(np.deg2rad(alpha)) * (i * source_distance / c)
-        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt))
+        latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / c)
+        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt) + 300)
     u.data.fill(0)
 
 
