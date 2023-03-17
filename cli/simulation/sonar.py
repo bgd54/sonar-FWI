@@ -6,7 +6,7 @@ import numpy as np
 import numpy.typing as npt
 from typing import Optional
 from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
-from examples.seismic import Model
+from examples.seismic import Model, TimeAxis, Receiver
 
 from simulation import plotting, utils
 
@@ -16,18 +16,19 @@ class Sonar:
 
     def __init__(
         self,
-        size_x: int,
-        size_y: int,
+        size_x: int, # domain size
+        size_y: int, # domain size
         f0: float,
         v_env: float,
-        ns: int,
-        posx: float,
-        posy: float,
+        ns: int,    # src_pos, rec_pos
+        posx: float,# src_pos, rec_pos
+        posy: float,# src_pos, rec_pos
         bottom: utils.Bottom,
-        source_distance: float,
+        source_distance: float,# src_pos, rec_pos
         snapshot_delay: float = 0.0,
         obstacle: bool = False,
         r: float = 28.0,
+        rec_positions: Optional[npt.NDArray] = None,
     ) -> None:
         """Initialize the sonar class.
 
@@ -52,11 +53,6 @@ class Sonar:
         spacing = (self.spatial_dist, self.spatial_dist)
         origin = (0.0, 0.0)
         posy = posy if posy != 0.0 else ((ns - 1) / 2 * self.sdist) / size_y
-        travel_distance = math.sqrt(
-            (size_x * (posx if posx >= 0.5 else 1 - posx)) ** 2
-            + (size_y * (posy if posy >= 0.5 else 1 - posy)) ** 2
-        )
-        self.tn = travel_distance * 2 / v_env + 5
         self.model = Model(
             vp=self.set_bottom(bottom, cx=posx, cy=posy, r=r),
             origin=origin,
@@ -66,15 +62,29 @@ class Sonar:
             nbl=10,
             bcs="damp",
         )
-        (self.src, self.rec, self.time_range, self.center_pos,) = utils.setup_domain(
+        travel_distance = math.sqrt(
+            (size_x * (posx if posx >= 0.5 else 1 - posx)) ** 2
+            + (size_y * (posy if posy >= 0.5 else 1 - posy)) ** 2
+        )
+        self.tn = travel_distance * 2 / v_env + 5
+        self.time_range = TimeAxis(start=0.0, stop=self.tn, step=self.model.critical_dt)
+        (self.src, self.rec, self.center_pos) = utils.setup_sources_and_receivers(
             self.model,
-            tn=self.tn,
+            time_range=self.time_range,
             ns=ns,
             f0=self.f0,
             posx=posx,
             posy=posy,
             sdist=self.sdist,
         )
+        if rec_positions is not None:
+            self.rec = Receiver(
+                name="rec",
+                grid=self.model.grid,
+                time_range=self.time_range,
+                npoint=rec_positions.shape[0],
+                coordinates=rec_positions,
+            )
         print(
             f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
             f"dt: {self.model.critical_dt} t: {self.tn}\n"
@@ -84,6 +94,10 @@ class Sonar:
             print(f"{bottom} {r}")
         else:
             print(f"{bottom} o: {self.obstacle}")
+        self.snapshot_delay = snapshot_delay
+        self.setup_equations()
+
+    def setup_equations(self):
         self.u = TimeFunction(
             name="u", grid=self.model.grid, time_order=2, space_order=2
         )
@@ -96,8 +110,8 @@ class Sonar:
         rec_term = self.rec.interpolate(expr=self.u)
 
         save_stencil = []
-        if snapshot_delay > 0.0:
-            snapshot_delay_iter = math.ceil(snapshot_delay / self.model.critical_dt)
+        if self.snapshot_delay > 0.0:
+            snapshot_delay_iter = math.ceil(self.snapshot_delay / self.model.critical_dt)
             nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
             time_subsampled = ConditionalDimension(
                 "t_sub", parent=self.model.grid.time_dim, factor=snapshot_delay_iter
@@ -211,6 +225,7 @@ class Sonar:
             distance=results[0],
             amplitude=results[1],
         )
+        assert res2 is not None
 
         plotting.compare_velocity_to_measure(
             self.model,
