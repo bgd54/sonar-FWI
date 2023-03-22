@@ -7,6 +7,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy.signal import find_peaks, peak_prominences
 import matplotlib.animation as animation
 from simulation import utils
+from typing import Optional
 
 mpl.rc("font", size=16)
 mpl.rc("figure", figsize=(8, 6))
@@ -293,3 +294,17 @@ def plot_snapshot_and_signal(snap: npt.NDArray, recording: npt.NDArray, model,
                                   blit=True)
     ani.save(outfile)
     plt.show()
+
+
+def plot_attenuation(rec_data: npt.NDArray, cut: Optional[int] = None):
+    cut = cut if cut else rec_data.shape[0]
+    plt.figure()
+    plt.plot(
+        np.max(np.abs(rec_data[:cut, :]), axis=0) / np.max(np.abs(rec_data[:cut, :]))
+    )
+    plt.xlabel("Receivers")
+    plt.ylabel("Attenuation")
+    plt.tick_params()
+    plt.show()
+
+

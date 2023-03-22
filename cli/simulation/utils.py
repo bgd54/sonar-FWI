@@ -1,13 +1,17 @@
 import math
 import time
+import tqdm
 from enum import Enum
 
 import numpy as np
 import numpy.typing as npt
-from examples.seismic import Receiver, WaveletSource
+from examples.seismic import Receiver
 from scipy.signal import find_peaks, peak_prominences
+from simulation.sources import SineSource
 
-from typing import Optional, Union
+from dataclasses import dataclass
+
+from typing import Optional, Union, Tuple
 
 Float = Union[float, np.floating]
 
@@ -16,6 +20,76 @@ class Bottom(str, Enum):
     flat = "flat"
     ellipsis = "ellipsis"
     circle = "circle"
+
+@dataclass
+class FlatBottom:
+    """Flat bottom"""
+    obstacle: bool = False
+
+@dataclass
+class EllipsisBottom:
+    """Ellipsis shaped bottom"""
+    a: float
+    b: float
+    obstacle: bool = False
+
+@dataclass
+class CircleBottom:
+    """Circle shaped bottom"""
+    cx: float # m
+    cy: float # m
+    r: float # m
+
+Bottom_type = FlatBottom | EllipsisBottom | CircleBottom
+
+def gen_velocity_profile(
+    bottom: Bottom_type,
+    domain_dims: Tuple[int, int],
+    spatial_dist: float = 0.1,
+    v_wall: float = 3.24,
+    v_water: float = 1.5,
+) -> npt.NDArray[np.float32]:
+    """Generate velocity profile for the simulation."""
+    vp = np.full(domain_dims, v_water, dtype=np.float32)
+    match bottom:
+        case FlatBottom(obstacle):
+            y_wall = max(
+                int(domain_dims[1] * 0.8), round(domain_dims[1] - 5 / spatial_dist)
+            )
+            vp[:, y_wall:] = v_wall
+            if obstacle:
+                r = vp.shape[0] / 100
+                for i in tqdm.tqdm(range(1, 101, 2)):
+                    a, b = vp.shape[0] / 100 * i, y_wall
+                    y, x = np.ogrid[-a : vp.shape[0] - a, -b : vp.shape[1] - b]
+                    vp[x * x + y * y <= r * r] = v_wall
+        case EllipsisBottom(a, b, obstacle):
+            offs = round((1 / spatial_dist) / 2)
+            x = np.arange(0, vp.shape[0])
+            y = np.arange(0, vp.shape[1])
+            mask = (y[np.newaxis, :] - offs - b) ** 2 / b**2 + (
+                x[:, np.newaxis] - offs - a
+            ) ** 2 / a**2 > 1
+            vp[mask] = v_wall
+            if obstacle:
+                r = vp.shape[0] / 100
+                ox = np.arange(offs, 2 * a + offs + 1, 2 * a / 50)
+                oy = np.sqrt(1 - (ox - a - offs) ** 2 / a**2) * b + offs + b
+                for oxx, oyy in tqdm.tqdm(zip(ox, oy)):
+                    mask = (y[np.newaxis, :] - oyy) ** 2 + (
+                        x[:, np.newaxis] - oxx
+                    ) ** 2 < r**2
+                    vp[mask] = v_wall
+        case CircleBottom(cx, cy, r):
+            ox = cx / spatial_dist
+            oy = cy / spatial_dist
+            r = round(r / spatial_dist)
+            x = np.arange(0, vp.shape[0])
+            y = np.arange(0, vp.shape[1])
+            mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
+            vp[mask] = v_wall
+
+    return vp
 
 
 def find_exp(number: float) -> int:
@@ -114,33 +188,6 @@ def src_positions_in_domain(
     else:
         cy = domain_size[1] * posy
     return src_positions(cx, cy, angle, ns, source_distance), (cx, cy)
-
-
-class SineSource(WaveletSource):
-    """
-    A source object that encapsulates everything necessary for injecting a
-    sine source into the computational domain.
-
-    Returns:
-        The source term that will be injected into the computational domain.
-    """
-
-    def __init_finalize__(self, *args, **kwargs):
-        super(SineSource, self).__init_finalize__(*args, **kwargs)
-        # TODO
-
-    @property
-    def wavelet(self):
-        t0 = self.t0 or 1 / self.f0
-        a = self.a or 1
-        r = 2 * np.pi * self.f0 * (self.time_values - t0)
-        wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
-        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
-        return wave
-
-    @property
-    def signal_packet(self):
-        return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
 
 
 def setup_sources_and_receivers(
