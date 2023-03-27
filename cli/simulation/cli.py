@@ -1,10 +1,13 @@
 import numpy as np
 import typer
+import math
 import matplotlib.pyplot as plt
 
+from examples.seismic import Receiver
+
 from simulation.plotting import PlotType, plot_snapshot_and_signal
-from simulation.sonar import Sonar
-from simulation.utils import Bottom
+from simulation.sonar import Sonar, Sonar_v2
+from simulation.utils import Bottom, FlatBottom, CircleBottom, EllipsisBottom
 
 app = typer.Typer()
 
@@ -217,6 +220,76 @@ def snaps(
     )
     s.run_angles(np.arange(alpha, alpha + 1))
     plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model, outfile)
+
+
+@app.command()
+def beams_v2(
+    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
+    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
+    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    ns: int = typer.Option(128, "-n", help="Number of sources."),
+    source_distance: float = typer.Option(
+        0.02, "-d", help="Distance between sources (m)"
+    ),
+    start_angle: float = typer.Option(
+        30, "-sa", help="Start angle of the beam. (degrees)"
+    ),
+    last_angle: float = typer.Option(
+        150, "-la", help="Last angle of the beam. (degrees)"
+    ),
+    out_file: str = typer.Option(
+        "./beams.npy", "-o", help="Output file to save recordings to."
+    ),
+):
+    max_distance = math.sqrt((size_x / 2) ** 2 + (size_y) ** 2)
+    t_end = max_distance / v_env
+    s = Sonar_v2((size_x, size_y), f0, v_env, CircleBottom(), t_end)
+    s.set_sine_source(ns, (size_x, size_y), source_distance)
+    s.finalize()
+    angles = np.arange(start_angle, last_angle, 5)
+    recordings = s.run_angles(angles)
+    with open(out_file, "wb") as fout:
+        np.save(fout, angles)
+        np.save(fout, recordings)
+
+
+@app.command()
+def analyse_v2(
+    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
+    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
+    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
+    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
+    ns: int = typer.Option(128, "-n", help="Number of sources."),
+    posx: float = typer.Option(
+        0.5, "-px", help="Position of the source in x direction. (relative)"
+    ),
+    posy: float = typer.Option(
+        0.0, "-py", help="Position of the source in y direction. (relative)"
+    ),
+    source_distance: float = typer.Option(
+        0.02, "-d", help="Distance between sources (m)"
+    ),
+    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
+    obstacle: bool = typer.Option(False, "--obstacle"),
+    outfile: str = typer.Option(
+        "./plot.png", "-o", help="Output file to save figure to."
+    ),
+    in_file: str = typer.Option(
+        "./beams.npy", "-i", help="input file to load recordings"
+    ),
+):
+    max_distance = math.sqrt((size_x / 2) ** 2 + (size_y) ** 2)
+    t_end = max_distance / v_env
+    s = Sonar_v2((size_x, size_y), f0, v_env, CircleBottom(), t_end)
+    ideal_signal = s.get_ideal_signal()
+    s.set_sine_source(ns, (size_x, size_y), source_distance)
+    s.finalize()
+    with open(in_file, "rb") as fin:
+        angles = np.load(fin)
+        recordings = np.load(fin)
+    s.parse_and_plot(recordings, angles, ideal_signal)
+    plt.savefig(outfile)
 
 
 @app.callback()

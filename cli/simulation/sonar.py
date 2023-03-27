@@ -9,6 +9,7 @@ from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
 from examples.seismic import Model, TimeAxis, Receiver, WaveletSource
 
 from simulation import plotting, utils
+from simulation.sources import SineSource, MultiFrequencySource
 
 
 class Sonar:
@@ -20,11 +21,11 @@ class Sonar:
         size_y: int,
         f0: float,
         v_env: float,
-        ns: int,    # src_pos, rec_pos
-        posx: float,# src_pos, rec_pos
-        posy: float,# src_pos, rec_pos
+        ns: int,  # src_pos, rec_pos
+        posx: float,  # src_pos, rec_pos
+        posy: float,  # src_pos, rec_pos
         bottom: utils.Bottom,
-        source_distance: float,# src_pos, rec_pos
+        source_distance: float,  # src_pos, rec_pos
         snapshot_delay: float = 0.0,
         obstacle: bool = False,
         r: float = 28.0,
@@ -97,7 +98,6 @@ class Sonar:
         self.snapshot_delay = snapshot_delay
         self.setup_equations()
 
-
     def setup_equations(self):
         self.u = TimeFunction(
             name="u", grid=self.model.grid, time_order=2, space_order=2
@@ -112,7 +112,9 @@ class Sonar:
 
         save_stencil = []
         if self.snapshot_delay > 0.0:
-            snapshot_delay_iter = math.ceil(self.snapshot_delay / self.model.critical_dt)
+            snapshot_delay_iter = math.ceil(
+                self.snapshot_delay / self.model.critical_dt
+            )
             nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
             time_subsampled = ConditionalDimension(
                 "t_sub", parent=self.model.grid.time_dim, factor=snapshot_delay_iter
@@ -282,6 +284,7 @@ class Sonar:
             receiver=self.rec.coordinates.data,
         )
 
+
 class Sonar_v2:
     """Sonar simulation class for water tank simulations with optinal source type."""
 
@@ -315,7 +318,7 @@ class Sonar_v2:
             nbl=10,
             bcs="damp",
         )
-        self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt) 
+        self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt)
         self.u = None
         self.usave = None
         self.src = None
@@ -326,6 +329,51 @@ class Sonar_v2:
         """Set the source and receiver."""
         self.src = src
         self.rec = rec
+
+    def get_ideal_signal(self) -> npt.NDArray:
+        self.src = SineSource(
+            name="src",
+            grid=self.model.grid,
+            npoint=1,
+            time_range=self.time_range,
+            f0=self.f0,
+        )
+        self.src.coordinates.data[0, :] = self.model.domain_size[0] / 2
+        self.src.coordinates.data[:, 1] = self.model.domain_size[1] / 10
+        self.rec = Receiver(
+            name="rec", grid=self.model.grid, time_range=self.time_range, npoint=10
+        )
+        self.rec.coordinates.data[:, 0] = np.linspace(0, self.model.domain_size[0], 10)
+        self.rec.coordinates.data[:, 1] = self.model.domain_size[1] / 2
+        self.finalize()
+        self.op(time=self.time_range.num - 2, dt=self.model.critical_dt)
+        return self.rec.data
+
+    def set_sine_source(
+        self, ns: int, domain_size: Tuple[float, float], source_distance: float
+    ) -> None:
+        """Set a sine source."""
+        cy = (ns - 1) / 2 * source_distance
+        src_coord = np.array(
+            [(domain_size[0] - source_distance * ns) / 2, cy]
+        ) + utils.positions_line(
+            stop_x=ns * source_distance, posy=source_distance, n=ns
+        )
+        self.src = SineSource(
+            name="src",
+            grid=self.model.grid,
+            npoint=ns,
+            f0=self.f0,
+            time_range=self.time_range,
+            coordinates_data=src_coord,
+        )
+        self.rec = Receiver(
+            name="rec",
+            grid=self.model.grid,
+            time_range=self.time_range,
+            npoint=ns,
+            coordinates=src_coord,
+        )
 
     def finalize(self, snapshot_delay: Optional[float] = None) -> None:
         """Set up the wave equations, source and receiver terms and snapshoting"""
@@ -362,4 +410,42 @@ class Sonar_v2:
             [stencil] + save_stencil + src_term + rec_term, subs=self.model.spacing_map
         )
 
+        def run_angles(self, angles: npt.NDArray) -> npt.NDArray:
+            """Run the sonar simulation. Plots the results.
 
+            Args:
+                angles (NDArray[float]): list of angles to launch beams
+            """
+            return utils.run_angles(
+                self.model,
+                self.src,
+                self.rec,
+                self.op,
+                self.u,
+                self.sdist,
+                self.time_range,
+                center=self.center_pos,
+                angle=angles,
+                v_env=self.v_env,
+            )
+
+        def parse_and_plot(self, angles, recordings, ideal_signal):
+            distances = np.zeros(angles.shape)
+            for i, (_, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+                distances[i], _ = utils.echo_distance(
+                    np.average(rec, axis=1),
+                    self.model.critical_dt,
+                    ideal_signal,
+                    self.v_env,
+                )
+
+            abs_coords = utils.calculate_coordinates_from_pos(
+                rec_pos=self.center_pos, angle=angles, distance=distances
+            )
+
+            plotting.compare_velocity_to_measure(
+                self.model,
+                abs_coords,
+                source=self.src.coordinates.data,
+                receiver=self.rec.coordinates.data,
+            )
