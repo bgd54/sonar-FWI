@@ -318,6 +318,7 @@ class Sonar_v2:
             nbl=10,
             bcs="damp",
         )
+        self.v_env = v_water
         self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt)
         self.u = None
         self.usave = None
@@ -410,42 +411,47 @@ class Sonar_v2:
             [stencil] + save_stencil + src_term + rec_term, subs=self.model.spacing_map
         )
 
-        def run_angles(self, angles: npt.NDArray) -> npt.NDArray:
-            """Run the sonar simulation. Plots the results.
+    def run_angles(
+        self,
+        angles: npt.NDArray,
+        source_distance: float,
+        center_pos: Tuple[float, float],
+    ) -> npt.NDArray:
+        """Run the sonar simulation. Plots the results.
 
-            Args:
-                angles (NDArray[float]): list of angles to launch beams
-            """
-            return utils.run_angles(
-                self.model,
-                self.src,
-                self.rec,
-                self.op,
-                self.u,
-                self.sdist,
-                self.time_range,
-                center=self.center_pos,
-                angle=angles,
-                v_env=self.v_env,
+        Args:
+            angles (NDArray[float]): list of angles to launch beams
+        """
+        return utils.run_angles(
+            self.model,
+            self.src,
+            self.rec,
+            self.op,
+            self.u,
+            source_distance,
+            self.time_range,
+            center=center_pos,
+            angle=angles,
+            v_env=self.v_env,
+        )
+
+    def parse_and_plot(self, angles, recordings, ideal_signal):
+        distances = np.zeros(angles.shape)
+        for i, (_, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+            distances[i], _ = utils.echo_distance(
+                np.average(rec, axis=1),
+                self.model.critical_dt,
+                ideal_signal,
+                self.v_env,
             )
 
-        def parse_and_plot(self, angles, recordings, ideal_signal):
-            distances = np.zeros(angles.shape)
-            for i, (_, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
-                distances[i], _ = utils.echo_distance(
-                    np.average(rec, axis=1),
-                    self.model.critical_dt,
-                    ideal_signal,
-                    self.v_env,
-                )
+        abs_coords = utils.calculate_coordinates_from_pos(
+            rec_pos=self.center_pos, angle=angles, distance=distances
+        )
 
-            abs_coords = utils.calculate_coordinates_from_pos(
-                rec_pos=self.center_pos, angle=angles, distance=distances
-            )
-
-            plotting.compare_velocity_to_measure(
-                self.model,
-                abs_coords,
-                source=self.src.coordinates.data,
-                receiver=self.rec.coordinates.data,
-            )
+        plotting.compare_velocity_to_measure(
+            self.model,
+            abs_coords,
+            source=self.src.coordinates.data,
+            receiver=self.rec.coordinates.data,
+        )
