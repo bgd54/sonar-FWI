@@ -1,12 +1,12 @@
 """This module provides the sonar class for the water tank project."""
 import math
-import time
 import tqdm
 
 import numpy as np
 import numpy.typing as npt
+from typing import Optional, Tuple, Union
 from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
-from examples.seismic import Model
+from examples.seismic import Model, TimeAxis, Receiver, WaveletSource
 
 from simulation import plotting, utils
 
@@ -20,14 +20,15 @@ class Sonar:
         size_y: int,
         f0: float,
         v_env: float,
-        ns: int,
-        posx: float,
-        posy: float,
+        ns: int,    # src_pos, rec_pos
+        posx: float,# src_pos, rec_pos
+        posy: float,# src_pos, rec_pos
         bottom: utils.Bottom,
-        source_distance: float,
+        source_distance: float,# src_pos, rec_pos
         snapshot_delay: float = 0.0,
         obstacle: bool = False,
         r: float = 28.0,
+        rec_positions: Optional[npt.NDArray] = None,
     ) -> None:
         """Initialize the sonar class.
 
@@ -52,11 +53,6 @@ class Sonar:
         spacing = (self.spatial_dist, self.spatial_dist)
         origin = (0.0, 0.0)
         posy = posy if posy != 0.0 else ((ns - 1) / 2 * self.sdist) / size_y
-        travel_distance = math.sqrt(
-            (size_x * (posx if posx >= 0.5 else 1 - posx)) ** 2
-            + (size_y * (posy if posy >= 0.5 else 1 - posy)) ** 2
-        )
-        self.tn = travel_distance * 2 / v_env + 5
         self.model = Model(
             vp=self.set_bottom(bottom, cx=posx, cy=posy, r=r),
             origin=origin,
@@ -66,16 +62,29 @@ class Sonar:
             nbl=10,
             bcs="damp",
         )
-        (self.src, self.rec, self.time_range, self.center_pos,) = utils.setup_domain(
+        travel_distance = math.sqrt(
+            (size_x * (posx if posx >= 0.5 else 1 - posx)) ** 2
+            + (size_y * (posy if posy >= 0.5 else 1 - posy)) ** 2
+        )
+        self.tn = travel_distance * 2 / v_env + 5
+        self.time_range = TimeAxis(start=0.0, stop=self.tn, step=self.model.critical_dt)
+        (self.src, self.rec, self.center_pos) = utils.setup_sources_and_receivers(
             self.model,
-            tn=self.tn,
+            time_range=self.time_range,
             ns=ns,
             f0=self.f0,
             posx=posx,
             posy=posy,
             sdist=self.sdist,
-            v_env=self.v_env,
         )
+        if rec_positions is not None:
+            self.rec = Receiver(
+                name="rec",
+                grid=self.model.grid,
+                time_range=self.time_range,
+                npoint=rec_positions.shape[0],
+                coordinates=rec_positions,
+            )
         print(
             f"spacing: {spacing}, size: {self.size_x} x {self.size_y}, {self.model.domain_size}\n"
             f"dt: {self.model.critical_dt} t: {self.tn}\n"
@@ -85,6 +94,11 @@ class Sonar:
             print(f"{bottom} {r}")
         else:
             print(f"{bottom} o: {self.obstacle}")
+        self.snapshot_delay = snapshot_delay
+        self.setup_equations()
+
+
+    def setup_equations(self):
         self.u = TimeFunction(
             name="u", grid=self.model.grid, time_order=2, space_order=2
         )
@@ -97,8 +111,8 @@ class Sonar:
         rec_term = self.rec.interpolate(expr=self.u)
 
         save_stencil = []
-        if snapshot_delay > 0.0:
-            snapshot_delay_iter = math.ceil(snapshot_delay / self.model.critical_dt)
+        if self.snapshot_delay > 0.0:
+            snapshot_delay_iter = math.ceil(self.snapshot_delay / self.model.critical_dt)
             nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
             time_subsampled = ConditionalDimension(
                 "t_sub", parent=self.model.grid.time_dim, factor=snapshot_delay_iter
@@ -125,7 +139,7 @@ class Sonar:
         cx: float,
         cy: float,
         v_wall: float = 3.24,
-        r: float = None,
+        r: Optional[float] = None,
     ) -> npt.NDArray:
         """Set the bottom of the water tank.
 
@@ -169,6 +183,7 @@ class Sonar:
                     y, x = np.ogrid[-a : v.shape[0] - a, -b : v.shape[1] - b]
                     v[x * x + y * y <= r * r] = v_wall
         elif bottom == utils.Bottom.circle:
+            assert r is not None
             ox = int(cx * self.size_x)
             oy = int(cy * self.size_y)
             r = round(r / self.spatial_dist)
@@ -206,12 +221,12 @@ class Sonar:
         )
 
         res2 = utils.calculate_coordinates(
-            self.model.domain_size,
             rec_pos=[self.center_pos],
             angle=angles,
             distance=results[0],
             amplitude=results[1],
         )
+        assert res2 is not None
 
         plotting.compare_velocity_to_measure(
             self.model,
@@ -248,7 +263,7 @@ class Sonar:
 
     def parse_and_plot(self, angles, recordings):
         distances = np.zeros(angles.shape)
-        for i, (alpha, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
+        for i, (_, rec) in tqdm.tqdm(enumerate(zip(angles, recordings))):
             distances[i], _ = utils.echo_distance(
                 np.average(rec, axis=1),
                 self.model.critical_dt,
@@ -266,3 +281,85 @@ class Sonar:
             source=self.src.coordinates.data,
             receiver=self.rec.coordinates.data,
         )
+
+class Sonar_v2:
+    """Sonar simulation class for water tank simulations with optinal source type."""
+
+    def __init__(
+        self,
+        domain_size: Tuple[float, float],
+        f_critical: float,
+        v_water: float,
+        velocity_profile: Union[npt.NDArray, utils.Bottom_type],
+        tn: float,
+    ) -> None:
+        self.f0 = f_critical
+        self.spatial_dist = round(v_water / self.f0 / 3, 3)
+        domain_dims = (
+            round(domain_size[0] / self.spatial_dist),
+            round(domain_size[1] / self.spatial_dist),
+        )
+        vp = (
+            velocity_profile
+            if isinstance(velocity_profile, np.ndarray)
+            else utils.gen_velocity_profile(
+                velocity_profile, domain_dims, self.spatial_dist, v_water=v_water
+            )
+        )
+        self.model = Model(
+            vp=vp,
+            origin=(0.0, 0.0),
+            spacing=(self.spatial_dist, self.spatial_dist),
+            shape=domain_dims,
+            space_order=2,
+            nbl=10,
+            bcs="damp",
+        )
+        self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt) 
+        self.u = None
+        self.usave = None
+        self.src = None
+        self.rec = None
+        self.op = None
+
+    def set_source(self, src: WaveletSource, rec: Receiver) -> None:
+        """Set the source and receiver."""
+        self.src = src
+        self.rec = rec
+
+    def finalize(self, snapshot_delay: Optional[float] = None) -> None:
+        """Set up the wave equations, source and receiver terms and snapshoting"""
+        assert self.src is not None and self.rec is not None
+        self.u = TimeFunction(
+            name="u", grid=self.model.grid, time_order=2, space_order=2
+        )
+        pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
+        stencil = Eq(self.u.forward, solve(pde, self.u.forward))
+        src_term = self.src.inject(
+            field=self.u.forward,
+            expr=self.src * self.model.critical_dt**2 / self.model.m,
+        )
+        rec_term = self.rec.interpolate(expr=self.u)
+
+        save_stencil = []
+        if snapshot_delay is not None:
+            snapshot_delay_iter = math.ceil(snapshot_delay / self.model.critical_dt)
+            nsnaps = math.ceil(self.time_range.num / snapshot_delay_iter)
+            time_subsampled = ConditionalDimension(
+                "t_sub", parent=self.model.grid.time_dim, factor=snapshot_delay_iter
+            )
+            self.usave = TimeFunction(
+                name="usave",
+                grid=self.model.grid,
+                time_order=2,
+                space_order=2,
+                save=nsnaps,
+                time_dim=time_subsampled,
+            )
+            save_stencil.append(Eq(self.usave, self.u))
+
+        self.op = Operator(
+            [stencil] + save_stencil + src_term + rec_term, subs=self.model.spacing_map
+        )
+
+

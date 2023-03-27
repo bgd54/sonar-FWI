@@ -1,17 +1,95 @@
 import math
 import time
+import tqdm
 from enum import Enum
 
 import numpy as np
 import numpy.typing as npt
-from examples.seismic import Receiver, TimeAxis, WaveletSource
+from examples.seismic import Receiver
 from scipy.signal import find_peaks, peak_prominences
+from simulation.sources import SineSource
+
+from dataclasses import dataclass
+
+from typing import Optional, Union, Tuple
+
+Float = Union[float, np.floating]
 
 
 class Bottom(str, Enum):
     flat = "flat"
     ellipsis = "ellipsis"
     circle = "circle"
+
+@dataclass
+class FlatBottom:
+    """Flat bottom"""
+    obstacle: bool = False
+
+@dataclass
+class EllipsisBottom:
+    """Ellipsis shaped bottom"""
+    a: float
+    b: float
+    obstacle: bool = False
+
+@dataclass
+class CircleBottom:
+    """Circle shaped bottom"""
+    cx: float # m
+    cy: float # m
+    r: float # m
+
+Bottom_type = FlatBottom | EllipsisBottom | CircleBottom
+
+def gen_velocity_profile(
+    bottom: Bottom_type,
+    domain_dims: Tuple[int, int],
+    spatial_dist: float = 0.1,
+    v_wall: float = 3.24,
+    v_water: float = 1.5,
+) -> npt.NDArray[np.float32]:
+    """Generate velocity profile for the simulation."""
+    vp = np.full(domain_dims, v_water, dtype=np.float32)
+    match bottom:
+        case FlatBottom(obstacle):
+            y_wall = max(
+                int(domain_dims[1] * 0.8), round(domain_dims[1] - 5 / spatial_dist)
+            )
+            vp[:, y_wall:] = v_wall
+            if obstacle:
+                r = vp.shape[0] / 100
+                for i in tqdm.tqdm(range(1, 101, 2)):
+                    a, b = vp.shape[0] / 100 * i, y_wall
+                    y, x = np.ogrid[-a : vp.shape[0] - a, -b : vp.shape[1] - b]
+                    vp[x * x + y * y <= r * r] = v_wall
+        case EllipsisBottom(a, b, obstacle):
+            offs = round((1 / spatial_dist) / 2)
+            x = np.arange(0, vp.shape[0])
+            y = np.arange(0, vp.shape[1])
+            mask = (y[np.newaxis, :] - offs - b) ** 2 / b**2 + (
+                x[:, np.newaxis] - offs - a
+            ) ** 2 / a**2 > 1
+            vp[mask] = v_wall
+            if obstacle:
+                r = vp.shape[0] / 100
+                ox = np.arange(offs, 2 * a + offs + 1, 2 * a / 50)
+                oy = np.sqrt(1 - (ox - a - offs) ** 2 / a**2) * b + offs + b
+                for oxx, oyy in tqdm.tqdm(zip(ox, oy)):
+                    mask = (y[np.newaxis, :] - oyy) ** 2 + (
+                        x[:, np.newaxis] - oxx
+                    ) ** 2 < r**2
+                    vp[mask] = v_wall
+        case CircleBottom(cx, cy, r):
+            ox = cx / spatial_dist
+            oy = cy / spatial_dist
+            r = round(r / spatial_dist)
+            x = np.arange(0, vp.shape[0])
+            y = np.arange(0, vp.shape[1])
+            mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
+            vp[mask] = v_wall
+
+    return vp
 
 
 def find_exp(number: float) -> int:
@@ -27,8 +105,8 @@ def find_exp(number: float) -> int:
 
 
 def src_positions(
-    cx: float, cy: float, alpha: float, ns: int, sdist: float
-) -> np.typing.NDArray:
+    cx: Float, cy: Float, alpha: Float, ns: int, sdist: Float
+) -> npt.NDArray:
     """
     Create source positions.
 
@@ -40,7 +118,7 @@ def src_positions(
         sdist (float): Distance between sources.
 
     Returns:
-        np.typing.NDArray: Source positions.
+        npt.NDArray: Source positions.
     """
     assert alpha >= 0 and alpha < 180
     assert ns > 0
@@ -53,14 +131,43 @@ def src_positions(
     return res
 
 
+def positions_line(
+    stop_x: Float,
+    posy: Float,
+    n: int = 128,
+):
+    """
+    Generate points in a line
+
+    Args:
+        stop_x (float): x position of last point domain.
+        nr (int): Number of points to generate.
+        posy (float): Absolute depth of the points
+
+    Returns:
+        Absolute positions of receivers
+    """
+    start = [0, posy]
+    end = [stop_x, posy]
+    return np.linspace(start, end, num=n)
+
+def positions_half_circle(
+    r: Float, c_x: Float, c_y: Float, n: int = 181
+):
+    res = np.zeros((n, 2))
+    res[:, 0] = np.cos(np.deg2rad(np.linspace(0, 180, n))) * r + c_x
+    res[:, 1] = np.sin(np.deg2rad(np.linspace(0, 180, n))) * r + c_y
+    return res
+
+
 def src_positions_in_domain(
-    domain_size: tuple[np.float64, np.float64],
-    posx: float = 0.5,
-    posy: float = 0.0,
+    domain_size: tuple[Float, Float],
+    posx: Float = 0.5,
+    posy: Float = 0.0,
     source_distance: float = 0.1,
     ns: int = 128,
     angle: float = 90,
-) -> tuple[np.typing.NDArray, tuple[float, float]]:
+) -> tuple[npt.NDArray, tuple[Float, Float]]:
     """
     Create the source positions in the domain.
 
@@ -73,7 +180,7 @@ def src_positions_in_domain(
         angle (float): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
 
     Returns:
-        tuple[np.typing.NDArray, tuple[float, float]]: Source positions and the center of the source array.
+        tuple[npt.NDArray, tuple[float, float]]: Source positions and the center of the source array.
     """
     cx = domain_size[0] * posx
     if posy == 0.0:
@@ -83,84 +190,82 @@ def src_positions_in_domain(
     return src_positions(cx, cy, angle, ns, source_distance), (cx, cy)
 
 
-class SineSource(WaveletSource):
-    """
-    A source object that encapsulates everything necessary for injecting a
-    sine source into the computational domain.
-
-    Returns:
-        The source term that will be injected into the computational domain.
-    """
-
-    @property
-    def wavelet(self):
-        t0 = self.t0 or 1 / self.f0
-        a = self.a or 1
-        r = np.pi * self.f0 * (self.time_values - t0)
-        wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
-        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
-        return wave
-
-    @property
-    def signal_packet(self):
-        return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
-
-
-def setup_domain(
+def setup_sources_and_receivers(
     model,
-    tn=0.05,
+    time_range,
     ns=128,
-    f0=5000,
+    f0=5000.0,
     posx=0.5,
     posy=0.0,
     angle=90,
     sdist=0.2,
-    v_env=1.4967,
 ):
     """
-    Setup the domain.
+    Setup the sources and receivers.
 
     Args:
         model (Model): Model of the domain.
-        tn (float): End time of the simulation.
+        time_range (TimeAxis): Time axis for the simulation.
         ns (int): Number of sources.
         f0 (float): Center frequency of the signal.
         posx (float): Relative position of the center of the source array in x direction.
         posy (float): Relative position of the center of the source array in y direction.
         angle (float): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
-        v_env (float): Velocity of the water.
 
     Returns:
-        Source and receiver, center of the source array and wavelength.
+        Source and receiver, center of the source array.
     """
-    t0 = 0.0
-    dt = model.critical_dt
-    time_range = TimeAxis(start=t0, stop=tn, step=dt)
-    nr = ns
-    sangle = angle
+    src, src_center = setup_sources(model, time_range, ns, f0, posx, posy, angle, sdist)
+    rec = Receiver(
+        name="rec",
+        grid=model.grid,
+        time_range=time_range,
+        npoint=ns,
+        coordinates=src.coordinates.data,
+    )
+
+    return src, rec, src_center
+
+def setup_sources(
+    model,
+    time_range,
+    ns=128,
+    f0=5000.0,
+    posx=0.5,
+    posy=0.0,
+    angle=90,
+    sdist=0.2,
+):
+    """
+    Setup the sources.
+
+    Args:
+        model (Model): Model of the domain.
+        time_range (TimeAxis): Time axis for the simulation.
+        ns (int): Number of sources.
+        f0 (float): Center frequency of the signal.
+        posx (float): Relative position of the center of the source array in x direction.
+        posy (float): Relative position of the center of the source array in y direction.
+        angle (float): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
+
+    Returns:
+        Sources, center of the source array.
+    """
     src_positions, src_center = src_positions_in_domain(
         model.domain_size,
         posx=posx,
         posy=posy,
         source_distance=sdist,
         ns=ns,
-        angle=sangle,
+        angle=angle,
     )
 
     src = SineSource(
         name="src", grid=model.grid, f0=f0, time_range=time_range, npoint=ns
     )
     src.coordinates.data[:] = src_positions
-    rec = Receiver(
-        name="rec",
-        grid=model.grid,
-        time_range=time_range,
-        npoint=nr,
-        coordinates=src.coordinates.data,
-    )
 
-    return src, rec, time_range, src_center
-
+    return src, src_center
 
 def num_iter_for_distance(distance: float, dt: float, v_env: float):
     # distance in [m]
@@ -179,18 +284,22 @@ def object_distance_iter(step: int, dt: float, v_env: float):
     return ((step * dt) / 2) * v_env
 
 
-def find_first_peak(recording, timestep: float, v_env: float) -> int:
+def find_first_peak(recording) -> int:
     peaks, _ = find_peaks(recording)
     prominences = peak_prominences(recording, peaks)[0]
     return peaks[(prominences - np.average(prominences)) > np.std(prominences)][0]
 
 
 def first_peak_after(
-    recording, timestep: float, v_env: float, cut_iter: int = None, cut_ms: float = None
+    recording,
+    timestep: float,
+    cut_iter: Optional[int] = None,
+    cut_ms: Optional[float] = None,
 ):
     if cut_iter is None:
+        assert cut_ms is not None
         cut_iter = round(cut_ms / timestep)
-    return cut_iter + find_first_peak(recording[cut_iter:], timestep, v_env)
+    return cut_iter + find_first_peak(recording[cut_iter:])
 
 
 def object_distance(
@@ -207,7 +316,7 @@ def object_distance(
     Returns:
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
-    first_peak = first_peak_after(receiver, timestep, v_env, cut_ms=cut_ms)
+    first_peak = first_peak_after(receiver, timestep, cut_ms=cut_ms)
     distance = object_distance_iter(first_peak, timestep, v_env)
     #  print(f"distance {distance} m <- {v_env} / 2 * {first_peak} * {timestep}")
     return distance, receiver[first_peak]
@@ -216,19 +325,23 @@ def object_distance(
 def detect_echo_after(
     recording,
     timestep: float,
-    v_env: float,
     signal: npt.NDArray,
-    cut_iter: int = None,
-    cut_ms: float = None,
+    cut_iter: Optional[int] = None,
+    cut_ms: Optional[float] = None,
 ):
     if cut_iter is None:
+        assert cut_ms is not None
         cut_iter = round(cut_ms / timestep)
     correlation = np.correlate(recording[cut_iter:], signal)
     return cut_iter + correlation.argmax() - signal.shape[0]
 
 
 def echo_distance(
-    receiver, timestep: float, signal: npt.NDArray, v_env: float, cut_ms: float = None
+    receiver,
+    timestep: float,
+    signal: npt.NDArray,
+    v_env: float,
+    cut_ms: Optional[float] = None,
 ) -> tuple[float, float]:
     """
     Calculate the distance of the object from the receiver.
@@ -244,8 +357,7 @@ def echo_distance(
         tuple[float, float]: Distance of the object from the receiver and the time of the peak.
     """
     cut_ms = cut_ms or 2 * signal.shape[0] * timestep
-    cut_ms += 300 * timestep
-    echo = detect_echo_after(receiver, timestep, v_env, signal, cut_ms=cut_ms)
+    echo = detect_echo_after(receiver, timestep, signal, cut_ms=cut_ms)
     distance = object_distance_iter(echo, timestep, v_env)
     return distance, receiver[echo]
 
@@ -269,7 +381,7 @@ def setup_beam(src, rec, u, source_distance, center_pos, alpha, dt, c):
     rec.coordinates.data[:] = src.coordinates.data[:]
     for i in range(ns):
         latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / c)
-        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt) + 300)
+        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt))
     u.data.fill(0)
 
 
@@ -384,14 +496,11 @@ def run_angles(
     return res
 
 
-def calculate_coordinates(
-    domain_size, rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]
-):
+def calculate_coordinates(rec_pos, angle=[65], distance=[26], amplitude=[2.3169e-09]):
     """
     Calculate the coordinates of the object.
 
     Args:
-        domain_size (tuple[float]): Size of the domain.
         rec_pos (tuple[float]): Position of the receiver.
         angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
         distance (list[float]): Distance of the object from the receiver.
