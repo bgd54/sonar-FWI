@@ -246,7 +246,12 @@ def run_beam(
         tuple[npt.NDArray, float]: Recorded signal and the maximum latency.
     """
     ns = src.coordinates.data.shape[0]
-    max_latency = np.cos(np.deg2rad(alpha)) * (ns * source_distance / v_env) / dt
+    if alpha <= 90:
+        max_latency = (
+            np.cos(np.deg2rad(alpha)) * ((ns - 1) * source_distance / v_env) / dt
+        )
+    elif alpha > 90:
+        max_latency = np.cos(np.deg2rad(alpha)) * (source_distance / v_env) / dt
     for i in range(ns):
         latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / v_env)
         src.data[:, i] = np.roll(src.data[:, i], int(latency / dt + max_latency))
