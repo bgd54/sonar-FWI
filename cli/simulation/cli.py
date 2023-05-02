@@ -38,7 +38,7 @@ def run_single_freq_circ(
         sonar.u,
         source_distance,
         sonar.time_range,
-        sonar.dt,
+        sonar.model.critical_dt,
         alpha,
         v_env,
     )
