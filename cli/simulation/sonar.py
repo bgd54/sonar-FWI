@@ -293,6 +293,7 @@ class Sonar_v2:
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
         tn: float,
         spatial_dist: float = 0.0,
+        dt: float = 0.0,
     ) -> None:
         self.f0 = f_critical
         if spatial_dist == 0.0:
@@ -318,6 +319,7 @@ class Sonar_v2:
             space_order=2,
             nbl=10,
             bcs="damp",
+            dt = dt,
         )
         self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt) 
         self.u = None

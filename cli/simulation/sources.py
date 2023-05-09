@@ -16,13 +16,18 @@ class SineSource(WaveletSource):
 
     @property
     def wavelet(self):
-        assert self.f0 is not None
-        t0 = self.t0 or 1 / self.f0
+        agauss = 0.5 * self.f0
+        tcut = self.t0 or 1.5 / agauss
+        s = (self.time_values - 20*tcut) * agauss
         a = self.a or 1
-        r = 2 * np.pi * self.f0 * (self.time_values - t0)
-        wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
-        wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
-        return wave
+        return a * np.exp(-0.5*s**2) * np.cos(2 * np.pi * s)
+        # assert self.f0 is not None
+        # t0 = self.t0 or 1 / self.f0
+        # a = self.a or 1
+        # r = 2 * np.pi * self.f0 * (self.time_values - t0)
+        # wave = a * np.sin(r) + a * np.sin(3 * (r + np.pi) / 4)
+        # wave[np.searchsorted(self.time_values, 4 * 2 / self.f0) :] = 0
+        # return wave
 
     @property
     def signal_packet(self):
