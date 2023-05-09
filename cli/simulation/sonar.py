@@ -292,9 +292,13 @@ class Sonar_v2:
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
         tn: float,
+        spatial_dist: float = 0.0,
     ) -> None:
         self.f0 = f_critical
-        self.spatial_dist = round(v_water / self.f0 / 3, 3)
+        if spatial_dist == 0.0:
+            self.spatial_dist = round(v_water / self.f0 / 3, 3)
+        else:
+            self.spatial_dist = spatial_dist
         domain_dims = (
             round(domain_size[0] / self.spatial_dist),
             round(domain_size[1] / self.spatial_dist),
@@ -327,11 +331,11 @@ class Sonar_v2:
         self.src = src
         self.rec = rec
 
-    def finalize(self, snapshot_delay: Optional[float] = None) -> None:
+    def finalize(self, snapshot_delay: Optional[float] = None, space_order: int = 2) -> None:
         """Set up the wave equations, source and receiver terms and snapshoting"""
         assert self.src is not None and self.rec is not None
         self.u = TimeFunction(
-            name="u", grid=self.model.grid, time_order=2, space_order=2
+            name="u", grid=self.model.grid, time_order=2, space_order=space_order
         )
         pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
         stencil = Eq(self.u.forward, solve(pde, self.u.forward))
@@ -352,7 +356,7 @@ class Sonar_v2:
                 name="usave",
                 grid=self.model.grid,
                 time_order=2,
-                space_order=2,
+                space_order=space_order,
                 save=nsnaps,
                 time_dim=time_subsampled,
             )
