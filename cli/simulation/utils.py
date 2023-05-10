@@ -32,6 +32,7 @@ class CircleBottom:
     cx: float  # m
     cy: float  # m
     r: float  # m
+    
 
 
 Bottom_type = FlatBottom | EllipsisBottom | CircleBottom
@@ -90,7 +91,7 @@ def gen_velocity_profile(
             x = np.arange(0, vp.shape[0])
             y = np.arange(0, vp.shape[1])
             mask = (y[np.newaxis, :] - oy) ** 2 + (x[:, np.newaxis] - ox) ** 2 > r**2
-            vp[mask] = v_wall
+            vp[mask] = v_wall            
 
     return vp
 

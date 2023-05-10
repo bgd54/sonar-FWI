@@ -30,6 +30,33 @@ class SineSource(WaveletSource):
         return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
 
 
+class GaborSource(WaveletSource):
+    """
+    A source object that encapsulates everything necessary for injecting a
+    Gabor source into the computational domain.
+
+    Returns:
+        The source term that will be injected into the computational domain.
+    """
+
+    def __init_finalize__(self, *args, **kwargs):
+        super(GaborSource, self).__init_finalize__(*args, **kwargs)
+
+    @property
+    def wavelet(self):
+        assert self.f0 is not None
+        agauss = 0.5 * self.f0
+        tcut = self.t0 or 1.5 / agauss
+        s = (self.time_values - 20 * tcut) * agauss
+        a = self.a or 1
+        return a * np.exp(-0.5 * s**2) * np.cos(2 * np.pi * s)
+
+    @property
+    def signal_packet(self):
+        assert self.f0 is not None
+        return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
+
+
 class MultiFrequencySource(WaveletSource):
     """
     A source object that encapsulates everything necessary for injecting multiple

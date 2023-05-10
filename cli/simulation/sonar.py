@@ -31,9 +31,14 @@ class Sonar:
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
         tn: Optional[float] = None,
+        dt: Optional[float] = None,
+        spatial_dist: Optional[float] = None,
     ) -> None:
         self.f0 = f_critical
-        self.spatial_dist = round(v_water / self.f0 / 3, 3)
+        if spatial_dist is None:
+            self.spatial_dist = round(v_water / self.f0 / 3, 3)
+        else:
+            self.spatial_dist = spatial_dist
         self.domain_size = domain_size
         self.v_env = v_water
         domain_dims = (
@@ -47,15 +52,27 @@ class Sonar:
                 velocity_profile, domain_dims, self.spatial_dist, v_water=v_water
             )
         )
-        self.model = Model(
-            vp=vp,
-            origin=(0.0, 0.0),
-            spacing=(self.spatial_dist, self.spatial_dist),
-            shape=domain_dims,
-            space_order=2,
-            nbl=10,
-            bcs="damp",
-        )
+        if dt is None:
+            self.model = Model(
+                vp=vp,
+                origin=(0.0, 0.0),
+                spacing=(self.spatial_dist, self.spatial_dist),
+                shape=domain_dims,
+                space_order=2,
+                nbl=10,
+                bcs="damp",
+            )
+        else:
+            self.model = Model(
+                vp=vp,
+                origin=(0.0, 0.0),
+                spacing=(self.spatial_dist, self.spatial_dist),
+                shape=domain_dims,
+                space_order=2,
+                nbl=10,
+                bcs="damp",
+                dt=dt,
+            )
         if tn is None:
             max_distance = math.sqrt((domain_size[0] / 2) ** 2 + domain_size[1] ** 2)
             tn = max_distance * 2 / v_water + 5
@@ -110,7 +127,12 @@ class Sonar:
             self.src = src
             self.rec = rec
 
-    def finalize(self, snapshot_delay: Optional[float] = None) -> None:
+    def finalize(
+        self,
+        space_order: int = 2,
+        time_order: int = 2,
+        snapshot_delay: Optional[float] = None,
+    ) -> None:
         """
         Finalize the simulation by creating the operator and setting the source and receiver.
 
@@ -119,7 +141,10 @@ class Sonar:
         """
         assert self.src is not None and self.rec is not None
         self.u = TimeFunction(
-            name="u", grid=self.model.grid, time_order=2, space_order=2
+            name="u",
+            grid=self.model.grid,
+            time_order=time_order,
+            space_order=space_order,
         )
         pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
         stencil = Eq(self.u.forward, solve(pde, self.u.forward))
@@ -139,8 +164,8 @@ class Sonar:
             self.usave = TimeFunction(
                 name="usave",
                 grid=self.model.grid,
-                time_order=2,
-                space_order=2,
+                time_order=time_order,
+                space_order=space_order,
                 save=nsnaps,
                 time_dim=time_subsampled,
             )
