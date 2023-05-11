@@ -1,6 +1,7 @@
 """This module provides the sonar class for the water tank project."""
 import math
 import tqdm
+import copy
 
 import numpy as np
 import numpy.typing as npt
@@ -124,8 +125,8 @@ class Sonar:
             )
         else:
             assert src is not None and rec is not None
-            self.src = src
-            self.rec = rec
+            self.src = copy.deepcopy(src)
+            self.rec = copy.deepcopy(rec)
 
     def finalize(
         self,
