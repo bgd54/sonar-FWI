@@ -31,16 +31,18 @@ class Sonar:
         f_critical: float,
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
-        space_order: int = 2,
+        space_order: Optional[int] = None,
         tn: Optional[float] = None,
         dt: Optional[float] = None,
         spatial_dist: Optional[float] = None,
     ) -> None:
         self.f0 = f_critical
-        if spatial_dist is None:
-            self.spatial_dist = round(v_water / self.f0 / 3, 3)
-        else:
-            self.spatial_dist = spatial_dist
+        self.space_order = space_order if space_order is not None else 2
+        self.spatial_dist = (
+            spatial_dist
+            if spatial_dist is not None
+            else round(v_water / self.f0 / 3, 3)
+        )
         self.domain_size = domain_size
         self.v_env = v_water
         domain_dims = (
