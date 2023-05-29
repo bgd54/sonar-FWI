@@ -46,15 +46,15 @@ class GaborSource(WaveletSource):
     def wavelet(self):
         assert self.f0 is not None
         agauss = 0.5 * self.f0
-        tcut = self.t0 or 1.5 / agauss
-        s = (self.time_values - 20 * tcut) * agauss
+        tcut = self.t0 or 5 / agauss
+        s = (self.time_values - tcut) * agauss
         a = self.a or 1
         return a * np.exp(-0.5 * s**2) * np.cos(2 * np.pi * s)
 
     @property
     def signal_packet(self):
         assert self.f0 is not None
-        return self.wavelet[: np.searchsorted(self.time_values, 4 * 2 / self.f0)]
+        return self.wavelet[:800]
 
 
 class MultiFrequencySource(WaveletSource):

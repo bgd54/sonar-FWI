@@ -10,7 +10,7 @@ from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
 from examples.seismic import Model, TimeAxis, Receiver, WaveletSource
 
 from simulation import plotting, utils
-from simulation.sources import SineSource, MultiFrequencySource
+from simulation.sources import SineSource, MultiFrequencySource, GaborSource
 
 
 class Sonar:
@@ -32,12 +32,14 @@ class Sonar:
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
         space_order: Optional[int] = None,
+        time_order: Optional[int] = None,
         tn: Optional[float] = None,
         dt: Optional[float] = None,
         spatial_dist: Optional[float] = None,
     ) -> None:
         self.f0 = f_critical
         self.space_order = space_order if space_order is not None else 2
+        self.time_order = time_order if time_order is not None else 2
         self.spatial_dist = (
             spatial_dist
             if spatial_dist is not None
@@ -111,7 +113,7 @@ class Sonar:
             ) + utils.positions_line(
                 stop_x=ns * source_distance, posy=source_distance, n=ns
             )
-            self.src = SineSource(
+            self.src = GaborSource(
                 name="src",
                 grid=self.model.grid,
                 npoint=ns,
@@ -133,8 +135,6 @@ class Sonar:
 
     def finalize(
         self,
-        space_order: int = 2,
-        time_order: int = 2,
         snapshot_delay: Optional[float] = None,
     ) -> None:
         """
@@ -147,8 +147,8 @@ class Sonar:
         self.u = TimeFunction(
             name="u",
             grid=self.model.grid,
-            time_order=time_order,
-            space_order=space_order,
+            time_order=self.time_order,
+            space_order=self.space_order,
         )
         pde = self.model.m * self.u.dt2 - self.u.laplace + self.model.damp * self.u.dt
         stencil = Eq(self.u.forward, solve(pde, self.u.forward))
@@ -168,8 +168,8 @@ class Sonar:
             self.usave = TimeFunction(
                 name="usave",
                 grid=self.model.grid,
-                time_order=time_order,
-                space_order=space_order,
+                time_order=self.time_order,
+                space_order=self.space_order,
                 save=nsnaps,
                 time_dim=time_subsampled,
             )
