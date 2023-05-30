@@ -32,6 +32,7 @@ def run_single_freq_circ(
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
     cy = (ns - 1) / 2 * source_distance + source_distance
+    MPI.Init()
     sonar = Sonar(
         (size_x, size_y),
         f0,
@@ -42,7 +43,6 @@ def run_single_freq_circ(
     )
     sonar.set_source()
     sonar.finalize()
-    MPI.Init()
     set_log_level("DEBUG", comm=MPI.COMM_WORLD)
     recording = run_beam(
         sonar.src,
