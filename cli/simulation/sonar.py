@@ -71,7 +71,7 @@ class Sonar:
                 origin=(0.0, 0.0),
                 spacing=(self.spatial_dist, self.spatial_dist),
                 shape=domain_dims,
-                space_order=space_order,
+                space_order=self.space_order,
                 nbl=self.nbl,
                 bcs="damp",
             )
@@ -81,7 +81,7 @@ class Sonar:
                 origin=(0.0, 0.0),
                 spacing=(self.spatial_dist, self.spatial_dist),
                 shape=domain_dims,
-                space_order=space_order,
+                space_order=self.space_order,
                 nbl=self.nbl,
                 bcs="damp",
                 dt=dt,
