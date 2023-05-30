@@ -50,8 +50,8 @@ class Sonar:
         )
         self.ns = ns
         self.source_distance = source_distance
-        self.nbl = nbl if nbl is not None else (ns - 1) / 2 * source_distance / dt
         self.dt = dt if dt is not None else self.spatial_dist / 10
+        self.nbl = nbl if nbl is not None else (ns - 1) / 2 * source_distance / self.dt
         self.domain_size = domain_size
         self.v_env = v_water
         domain_dims = (
