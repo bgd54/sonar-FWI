@@ -71,7 +71,7 @@ class Sonar:
                 shape=domain_dims,
                 space_order=space_order,
                 nbl=self.nbl,
-                bcs=self.boundary,
+                bcs="damp",
             )
         else:
             self.model = Model(
@@ -81,7 +81,7 @@ class Sonar:
                 shape=domain_dims,
                 space_order=space_order,
                 nbl=self.nbl,
-                bcs=self.boundary,
+                bcs="damp",
                 dt=dt,
             )
         if tn is None:
@@ -109,17 +109,19 @@ class Sonar:
             ns (int): Number of sources.
         """
         if src is None and rec is None:
-            assert source_distance is not None and ns is not None
-            cy = (ns - 1) / 2 * source_distance
+            assert self.source_distance is not None and self.ns is not None
+            cy = (self.ns - 1) / 2 * self.source_distance
             src_coord = np.array(
-                [(self.domain_size[0] - source_distance * ns) / 2, cy]
+                [(self.domain_size[0] - self.source_distance * self.ns) / 2, cy]
             ) + utils.positions_line(
-                stop_x=ns * source_distance, posy=source_distance, n=ns
+                stop_x=self.ns * self.source_distance,
+                posy=self.source_distance,
+                n=self.ns,
             )
             self.src = GaborSource(
                 name="src",
                 grid=self.model.grid,
-                npoint=ns,
+                npoint=self.ns,
                 f0=self.f0,
                 time_range=self.time_range,
                 coordinates_data=src_coord,
@@ -128,7 +130,7 @@ class Sonar:
                 name="rec",
                 grid=self.model.grid,
                 time_range=self.time_range,
-                npoint=ns,
+                npoint=self.ns,
                 coordinates=src_coord,
             )
         else:
