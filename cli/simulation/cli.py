@@ -18,7 +18,7 @@ def run_single_freq_circ(
     v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     source_distance: float = typer.Option(
-        0.02, "-d", help="Distance between sources (m)"
+        0.002, "-d", help="Distance between sources (m)"
     ),
     alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
     radius: float = typer.Option(28, "-r", help="Radius of the circle (m)"),
@@ -28,7 +28,14 @@ def run_single_freq_circ(
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
     cy = (ns - 1) / 2 * source_distance + source_distance
-    sonar = Sonar((size_x, size_y), f0, v_env, CircleBottom(size_x / 2, cy, radius))
+    sonar = Sonar(
+        (size_x, size_y),
+        f0,
+        v_env,
+        CircleBottom(size_x / 2, cy, radius),
+        source_distance=source_distance,
+        ns=ns,
+    )
     sonar.set_source(source_distance=source_distance, ns=ns)
     sonar.finalize()
     recording = run_beam(

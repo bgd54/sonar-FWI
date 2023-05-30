@@ -31,11 +31,14 @@ class Sonar:
         f_critical: float,
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
+        ns: int = 128,
+        source_distance: float = 0.002,
         space_order: Optional[int] = None,
         time_order: Optional[int] = None,
         tn: Optional[float] = None,
         dt: Optional[float] = None,
         spatial_dist: Optional[float] = None,
+        nbl: Optional[float] = None,
     ) -> None:
         self.f0 = f_critical
         self.space_order = space_order if space_order is not None else 2
@@ -43,8 +46,10 @@ class Sonar:
         self.spatial_dist = (
             spatial_dist
             if spatial_dist is not None
-            else round(v_water / self.f0 / 3, 3)
+            else round(v_water / self.f0 / 3, 3) / 2
         )
+        self.nbl = nbl if nbl is not None else (ns - 1) / 2 * source_distance / dt
+        self.dt = dt if dt is not None else self.spatial_dist / 10
         self.domain_size = domain_size
         self.v_env = v_water
         domain_dims = (
@@ -65,8 +70,8 @@ class Sonar:
                 spacing=(self.spatial_dist, self.spatial_dist),
                 shape=domain_dims,
                 space_order=space_order,
-                nbl=10,
-                bcs="damp",
+                nbl=self.nbl,
+                bcs=self.boundary,
             )
         else:
             self.model = Model(
@@ -75,8 +80,8 @@ class Sonar:
                 spacing=(self.spatial_dist, self.spatial_dist),
                 shape=domain_dims,
                 space_order=space_order,
-                nbl=10,
-                bcs="damp",
+                nbl=self.nbl,
+                bcs=self.boundary,
                 dt=dt,
             )
         if tn is None:
@@ -93,8 +98,6 @@ class Sonar:
         self,
         src: WaveletSource = None,
         rec: Receiver = None,
-        source_distance: float = None,
-        ns: int = None,
     ) -> None:
         """
         Set the source and receiver for the simulation. If no source and receiver is given, use SineSource as default.
