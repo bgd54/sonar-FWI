@@ -36,7 +36,7 @@ def run_single_freq_circ(
         source_distance=source_distance,
         ns=ns,
     )
-    sonar.set_source(source_distance=source_distance, ns=ns)
+    sonar.set_source()
     sonar.finalize()
     recording = run_beam(
         sonar.src,
