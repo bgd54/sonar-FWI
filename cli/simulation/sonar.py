@@ -65,27 +65,16 @@ class Sonar:
                 velocity_profile, domain_dims, self.spatial_dist, v_water=v_water
             )
         )
-        if dt is None:
-            self.model = Model(
-                vp=vp,
-                origin=(0.0, 0.0),
-                spacing=(self.spatial_dist, self.spatial_dist),
-                shape=domain_dims,
-                space_order=self.space_order,
-                nbl=self.nbl,
-                bcs="damp",
-            )
-        else:
-            self.model = Model(
-                vp=vp,
-                origin=(0.0, 0.0),
-                spacing=(self.spatial_dist, self.spatial_dist),
-                shape=domain_dims,
-                space_order=self.space_order,
-                nbl=self.nbl,
-                bcs="damp",
-                dt=dt,
-            )
+        self.model = Model(
+            vp=vp,
+            origin=(0.0, 0.0),
+            spacing=(self.spatial_dist, self.spatial_dist),
+            shape=domain_dims,
+            space_order=self.space_order,
+            nbl=self.nbl,
+            bcs="damp",
+            dt=self.dt,
+        )
         if tn is None:
             max_distance = math.sqrt((domain_size[0] / 2) ** 2 + domain_size[1] ** 2)
             tn = max_distance * 2 / v_water + 5
