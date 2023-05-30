@@ -21,8 +21,6 @@ class EllipsisBottom:
     """Ellipsis shaped bottom"""
 
     obstacle: bool = False
-    a: Optional[float] = None
-    b: Optional[float] = None
 
 
 @dataclass
@@ -59,15 +57,13 @@ def gen_velocity_profile(
                     a, b = vp.shape[0] / 100 * i, y_wall
                     y, x = np.ogrid[-a : vp.shape[0] - a, -b : vp.shape[1] - b]
                     vp[x * x + y * y <= r * r] = v_wall
-        case EllipsisBottom(a, b, obstacle):
-            if a is None and b is None:
-                nx = domain_dims[0]
-                nz = domain_dims[1]
-                a = round((nx - (1 / spatial_dist)) / 2)
-                b = round((nz - (1 / spatial_dist)) / 2)
-            else:
-                assert a is not None and b is not None
-            offs = round((1 / spatial_dist) / 2)
+        case EllipsisBottom(obstacle):
+            nx = domain_dims[0]
+            nz = domain_dims[1]
+            wall = round(nx * 0.02)
+            a = round((nx - wall) / 2)
+            b = round((nz - wall) / 2)
+            offs = round(wall / 2)
             x = np.arange(0, vp.shape[0])
             y = np.arange(0, vp.shape[1])
             mask = (y[np.newaxis, :] - offs - b) ** 2 / b**2 + (

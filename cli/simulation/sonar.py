@@ -41,12 +41,12 @@ class Sonar:
         nbl: Optional[float] = None,
     ) -> None:
         self.f0 = f_critical
-        self.space_order = space_order if space_order is not None else 4
+        self.space_order = space_order if space_order is not None else 8
         self.time_order = time_order if time_order is not None else 2
         self.spatial_dist = (
             spatial_dist
             if spatial_dist is not None
-            else round(v_water / self.f0 / 3, 3) / 2
+            else round(v_water / self.f0 / 3, 3)
         )
         self.ns = ns
         self.source_distance = source_distance
