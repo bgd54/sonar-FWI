@@ -7,6 +7,9 @@ from simulation.plotting import PlotType, plot_snapshot_and_signal
 from simulation.sonar import Sonar
 from simulation.utils import FlatBottom, EllipsisBottom, CircleBottom, run_beam
 
+from devito.mpi import MPI
+from devito import mode_performance, set_log_level
+
 app = typer.Typer()
 
 
@@ -25,6 +28,7 @@ def run_single_freq_circ(
     output: str = typer.Option(
         "./recorded_signal.npy", "-o", help="output file to save recorded signal"
     ),
+    mpi: bool = typer.Option(False, "-m", help="Run with MPI"),
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
     cy = (ns - 1) / 2 * source_distance + source_distance
@@ -38,6 +42,8 @@ def run_single_freq_circ(
     )
     sonar.set_source()
     sonar.finalize()
+    MPI.Init()
+    set_log_level("DEBUG", comm=MPI.COMM_WORLD)
     recording = run_beam(
         sonar.src,
         sonar.rec,
@@ -49,6 +55,7 @@ def run_single_freq_circ(
         alpha,
         v_env,
     )
+    MPI.Finalize()
     with open(output, "wb") as f:
         np.save(f, recording)
 
