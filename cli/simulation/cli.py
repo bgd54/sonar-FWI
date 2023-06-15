@@ -72,7 +72,6 @@ def run_single_freq_ellipse(
         0.002, "-d", help="Distance between sources (m)"
     ),
     alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
-    radius: float = typer.Option(28, "-r", help="Radius of the circle (m)"),
     output: str = typer.Option(
         "./recorded_signal.npy", "-o", help="output file to save recorded signal"
     ),
