@@ -1,4 +1,5 @@
 import tqdm
+import time
 import numpy as np
 import numpy.typing as npt
 
@@ -243,6 +244,7 @@ def run_beam(
     Returns:
         tuple[npt.NDArray, float]: Recorded signal and the maximum latency.
     """
+    start_time = time.time()
     ns = src.coordinates.data.shape[0]
     if alpha <= 90:
         max_latency = (
@@ -255,6 +257,7 @@ def run_beam(
         src.data[:, i] = np.roll(src.data[:, i], int(latency / dt + max_latency))
     u.data.fill(0)
     op(time=time_range.num - 2, dt=dt)
+    print(f"Simulation took {time.time() - start_time} seconds")
     return rec.data
 
 
