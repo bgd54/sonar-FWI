@@ -62,7 +62,7 @@ def run_single_freq_circ(
 
 
 @app.command()
-def run_single_freq_ellipse_mpi(
+def run_single_freq_ellipse(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
     f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
@@ -79,7 +79,8 @@ def run_single_freq_ellipse_mpi(
     mpi: bool = typer.Option(False, "-m", help="Run with MPI"),
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
-    setup_MPI()
+    if mpi:
+        setup_MPI()
     sonar = Sonar(
         (size_x, size_y),
         f0,
@@ -90,18 +91,33 @@ def run_single_freq_ellipse_mpi(
     )
     sonar.set_source()
     sonar.finalize()
-    recording = run_beam_MPI(
-        sonar.src,
-        sonar.rec,
-        sonar.op,
-        sonar.u,
-        source_distance,
-        sonar.time_range,
-        sonar.model.critical_dt,
-        alpha,
-        v_env,
-    )
-    write_to_file_MPI(output, recording)
+    if mpi:
+        recording = run_beam_MPI(
+            sonar.src,
+            sonar.rec,
+            sonar.op,
+            sonar.u,
+            source_distance,
+            sonar.time_range,
+            sonar.model.critical_dt,
+            alpha,
+            v_env,
+        )
+        write_to_file_MPI(output, recording)
+    else:
+        recording = run_beam(
+            sonar.src,
+            sonar.rec,
+            sonar.op,
+            sonar.u,
+            source_distance,
+            sonar.time_range,
+            sonar.model.critical_dt,
+            alpha,
+            v_env,
+        )
+        with open(output, "wb") as f:
+            np.save(f, recording)
 
 
 @app.callback()
