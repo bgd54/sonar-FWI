@@ -79,6 +79,7 @@ def run_single_freq_ellipse(
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
     if mpi:
+        print("Running with MPI")
         setup_MPI()
     sonar = Sonar(
         (size_x, size_y),
