@@ -74,6 +74,7 @@ class Sonar:
             nbl=self.nbl,
             bcs="damp",
             dt=self.dt,
+            dtype=np.float64,
         )
         if tn is None:
             max_distance = math.sqrt((domain_size[0] / 2) ** 2 + domain_size[1] ** 2)
