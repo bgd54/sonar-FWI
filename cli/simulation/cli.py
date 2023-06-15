@@ -14,6 +14,7 @@ from simulation.utils import (
     setup_MPI,
     write_to_file_MPI,
 )
+from devito import configuration
 
 app = typer.Typer()
 
@@ -82,6 +83,8 @@ def run_single_freq_ellipse(
     if mpi:
         print("Running with MPI")
         setup_MPI()
+    else:
+        configuration["mpi"] = False
     sonar = Sonar(
         (size_x, size_y),
         f0,
