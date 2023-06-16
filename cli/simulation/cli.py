@@ -79,12 +79,12 @@ def run_single_freq_ellipse(
     mpi: bool = typer.Option(False, "-m", help="Run with MPI"),
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
-    print(mpi)
-    if mpi:
-        print("Running with MPI")
-        setup_MPI()
-    else:
-        configuration["mpi"] = False
+    # print(mpi)
+    # if mpi:
+    #     print("Running with MPI")
+    #     setup_MPI()
+    # else:
+    #     configuration["mpi"] = False
     sonar = Sonar(
         (size_x, size_y),
         f0,
@@ -96,18 +96,19 @@ def run_single_freq_ellipse(
     sonar.set_source()
     sonar.finalize()
     if mpi:
-        recording = run_beam_MPI(
-            sonar.src,
-            sonar.rec,
-            sonar.op,
-            sonar.u,
-            source_distance,
-            sonar.time_range,
-            sonar.model.critical_dt,
-            alpha,
-            v_env,
-        )
-        write_to_file_MPI(output, recording)
+        print("Running with MPI")
+    #     recording = run_beam_MPI(
+    #         sonar.src,
+    #         sonar.rec,
+    #         sonar.op,
+    #         sonar.u,
+    #         source_distance,
+    #         sonar.time_range,
+    #         sonar.model.critical_dt,
+    #         alpha,
+    #         v_env,
+    #     )
+    #     write_to_file_MPI(output, recording)
     else:
         recording = run_beam(
             sonar.src,
