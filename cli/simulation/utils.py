@@ -5,9 +5,7 @@ import numpy.typing as npt
 
 from enum import Enum
 from dataclasses import dataclass
-from mpi4py import MPI
 
-# from devito import set_log_level, configuration, mode_performance
 from typing import Optional, Union, Tuple
 
 Float = Union[float, np.floating]
@@ -262,67 +260,6 @@ def run_beam(
     return rec.data
 
 
-# def run_beam_MPI(
-#     src,
-#     rec,
-#     op,
-#     u,
-#     source_distance: float,
-#     time_range,
-#     dt: float,
-#     alpha: float,
-#     v_env: float,
-# ):
-#     """
-#     Run a beam simulation, used for testing a single SineSource.
-
-#     Args:
-#         model (Model): Model to run the simulation on.
-#         src (SineSource): Source to use.
-#         rec (Receiver): Receiver to use.
-#         op (Operator): Operator to use.
-#         u (TimeFunction): TimeFunction to use.
-#         source_distance (float): Distance between sources.
-#         time_range (TimeAxis): TimeAxis to use.
-#         dt (float): Timestep of the simulation.
-#         alpha (float): Angle of the beam.
-#         v_env (float): Velocity of the sound in the medium.
-
-#     Returns:
-#         tuple[npt.NDArray, float]: Recorded signal and the maximum latency.
-#     """
-#     comm = MPI.COMM_WORLD
-#     rank = comm.Get_rank()
-#     size = comm.Get_size()
-
-#     ns = src.coordinates.data.shape[0] * size
-#     gathered_data = None
-#     if rank == 0:
-#         gathered_data = np.zeros((src.data.shape[0], ns), dtype=np.float32)
-#     comm.Gather(src.data, gathered_data, root=0)
-
-#     if rank == 0:
-#         rolled_data = np.zeros((src.data.shape[0], ns), dtype=np.float32)
-#         if alpha <= 90:
-#             max_latency = (
-#                 np.cos(np.deg2rad(alpha)) * ((ns - 1) * source_distance / v_env) / dt
-#             )
-#         elif alpha > 90:
-#             max_latency = np.cos(np.deg2rad(alpha)) * (source_distance / v_env) / dt
-#         for i in range(ns):
-#             latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / v_env)
-#             rolled_data[:, i] = np.roll(
-#                 gathered_data[:, i], int(latency / dt + max_latency)
-#             )
-#     else:
-#         rolled_data = None
-
-#     comm.Scatter(rolled_data, src.data, root=0)
-#     u.data.fill(0)
-#     op(time=time_range.num - 2, dt=dt)
-#     return rec.data
-
-
 def calculate_coordinates(
     rec_pos,
     angle=[65],
@@ -377,37 +314,3 @@ def calculate_coordinates_from_pos(
         coordinates[j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[j]
         coordinates[j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[j]
     return coordinates
-
-
-# def setup_MPI() -> None:
-#     """
-#     Setup MPI settings.
-#     """
-#     mode_performance()
-#     set_log_level("DEBUG", comm=MPI.COMM_WORLD)
-#     configuration["mpi"] = True
-#     configuration["language"] = "openmp"
-
-
-# def write_to_file_MPI(filename: str, data: npt.NDArray) -> None:
-#     """
-#     Write data to file.
-
-#     Args:
-#         filename (str): Name of the file.
-#         data (npt.NDArray): Data to write to file.
-#     """
-#     comm = MPI.COMM_WORLD
-#     rank = comm.Get_rank()
-#     size = comm.Get_size()
-
-#     gathered_data = None
-#     if rank == 0:
-#         gathered_data = np.zeros(
-#             (data.shape[0], data.shape[1] * size), dtype=np.float32
-#         )
-#     comm.Gather(data, gathered_data, root=0)
-
-#     if rank == 0:
-#         with open(filename, "wb") as f:
-#             np.save(f, gathered_data)

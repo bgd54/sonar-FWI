@@ -9,12 +9,8 @@ from simulation.utils import (
     FlatBottom,
     EllipsisBottom,
     CircleBottom,
-    run_beam_MPI,
     run_beam,
-    setup_MPI,
-    write_to_file_MPI,
 )
-from devito import configuration
 
 app = typer.Typer()
 
@@ -76,15 +72,8 @@ def run_single_freq_ellipse(
     output: str = typer.Option(
         "./recorded_signal.npy", "-o", help="output file to save recorded signal"
     ),
-    mpi: bool = typer.Option(False, "-m", help="Run with MPI"),
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
-    # print(mpi)
-    # if mpi:
-    #     print("Running with MPI")
-    #     setup_MPI()
-    # else:
-    #     configuration["mpi"] = False
     sonar = Sonar(
         (size_x, size_y),
         f0,
@@ -95,34 +84,20 @@ def run_single_freq_ellipse(
     )
     sonar.set_source()
     sonar.finalize()
-    if mpi:
-        print("Running with MPI")
-    #     recording = run_beam_MPI(
-    #         sonar.src,
-    #         sonar.rec,
-    #         sonar.op,
-    #         sonar.u,
-    #         source_distance,
-    #         sonar.time_range,
-    #         sonar.model.critical_dt,
-    #         alpha,
-    #         v_env,
-    #     )
-    #     write_to_file_MPI(output, recording)
-    else:
-        recording = run_beam(
-            sonar.src,
-            sonar.rec,
-            sonar.op,
-            sonar.u,
-            source_distance,
-            sonar.time_range,
-            sonar.model.critical_dt,
-            alpha,
-            v_env,
-        )
-        with open(output, "wb") as f:
-            np.save(f, recording)
+
+    recording = run_beam(
+        sonar.src,
+        sonar.rec,
+        sonar.op,
+        sonar.u,
+        source_distance,
+        sonar.time_range,
+        sonar.model.critical_dt,
+        alpha,
+        v_env,
+    )
+    with open(output, "wb") as f:
+        np.save(f, recording)
 
 
 @app.callback()
