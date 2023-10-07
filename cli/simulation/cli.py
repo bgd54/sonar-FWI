@@ -1,222 +1,205 @@
 import numpy as np
 import typer
+import tqdm
+import math
 import matplotlib.pyplot as plt
 
-from simulation.plotting import PlotType, plot_snapshot_and_signal
+from simulation.plotting import (
+    PlotType,
+    plot_snapshot_and_signal,
+    compare_velocity_to_measure,
+)
 from simulation.sonar import Sonar
-from simulation.utils import Bottom
+from simulation.utils import (
+    FlatBottom,
+    EllipsisBottom,
+    CircleBottom,
+    run_beam,
+)
 
 app = typer.Typer()
 
 
 @app.command()
-def run(
+def run_single_freq_circ(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
     f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
     v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
-    posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
-    posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
     source_distance: float = typer.Option(
-        0.2, "-d", help="Distance between sources (m)"
+        0.002, "-d", help="Distance between sources (m)"
     ),
-    bottom: Bottom = Bottom.ellipsis,
-    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
-    obstacle: bool = typer.Option(False, "-o"),
-):
-    """Initialize the sonar class and run the simulation."""
-    s = Sonar(
-        size_x,
-        size_y,
-        f0,
-        v_env,
-        ns,
-        posx,
-        posy,
-        bottom,
-        source_distance,
-        obstacle=obstacle,
-        r=r,
-    )
-    s.run_position_angles(5, 10, 5)
-    plt.show()
-
-
-@app.command()
-def beams(
-    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
-    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
-    ns: int = typer.Option(128, "-n", help="Number of sources."),
-    posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
-    posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
-    source_distance: float = typer.Option(
-        0.2, "-d", help="Distance between sources (m)"
-    ),
-    bottom: Bottom = Bottom.ellipsis,
-    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
-    obstacle: bool = typer.Option(False, "--obstacle"),
-    start_angle: float = typer.Option(30.0, "-a", help="First angle for a beam."),
-    last_angle: float = typer.Option(150.0, "-e", help="Last angle for a beam."),
-    angle_step: float = typer.Option(1.0, "-s", help="Step size for angles"),
+    alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
+    radius: float = typer.Option(28, "-r", help="Radius of the circle (m)"),
     output: str = typer.Option(
-        "./beams.npy", "-o", help="output file to save recordings"
+        "./recorded_signal.npy", "-o", help="output file to save recorded signal"
     ),
 ):
-    """Initialize the sonar class."""
-    s = Sonar(
-        size_x,
-        size_y,
+    """Initialize the sonar class and run the simulation with 1 frequency."""
+    cy = (ns - 1) / 2 * source_distance + source_distance
+    sonar = Sonar(
+        (size_x, size_y),
         f0,
         v_env,
-        ns,
-        posx,
-        posy,
-        bottom,
-        source_distance,
-        obstacle=obstacle,
-        r=r,
+        CircleBottom(size_x / 2, cy, radius),
+        source_distance=source_distance,
+        ns=ns,
     )
-    angles = np.arange(start_angle, last_angle, angle_step)
-    recordings = s.run_angles(angles)
-    with open(output, "wb") as fout:
-        np.save(fout, angles)
-        np.save(fout, recordings)
+    sonar.set_source()
+    sonar.finalize()
+    recording = run_beam(
+        sonar.src,
+        sonar.rec,
+        sonar.op,
+        sonar.u,
+        source_distance,
+        sonar.time_range,
+        sonar.model.critical_dt,
+        alpha,
+        v_env,
+    )
+    with open(output, "wb") as f:
+        np.save(f, recording)
 
 
 @app.command()
-def plot(
+def run_single_freq_ellipse(
     size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
     size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
     f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
     v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
-    posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
-    posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
     source_distance: float = typer.Option(
-        0.2, "-d", help="Distance between sources (m)"
+        0.002, "-d", help="Distance between sources (m)"
     ),
-    bottom: Bottom = Bottom.ellipsis,
-    obstacle: bool = typer.Option(False, "-o"),
-    plot_type: PlotType = PlotType.model,
+    alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
+    output: str = typer.Option(
+        "./recorded_signal.npy", "-o", help="output file to save recorded signal"
+    ),
 ):
-    """Initialize the sonar class and plot the result."""
-    s = Sonar(
-        size_x,
-        size_y,
+    """Initialize the sonar class and run the simulation with 1 frequency."""
+    sonar = Sonar(
+        (size_x, size_y),
         f0,
         v_env,
-        ns,
-        posx,
-        posy,
-        bottom,
-        source_distance,
-        obstacle=obstacle,
+        EllipsisBottom(True),
+        source_distance=source_distance,
+        ns=ns,
     )
-    s.plot_model(PlotType.model)
+    sonar.set_source()
+    sonar.finalize()
+
+    recording = run_beam(
+        sonar.src,
+        sonar.rec,
+        sonar.op,
+        sonar.u,
+        source_distance,
+        sonar.time_range,
+        sonar.model.critical_dt,
+        alpha,
+        v_env,
+    )
+    with open(output, "wb") as f:
+        np.save(f, recording)
 
 
 @app.command()
-def analyse(
-    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
-    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
-    ns: int = typer.Option(128, "-n", help="Number of sources."),
-    posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
-    posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
-    source_distance: float = typer.Option(
-        0.2, "-d", help="Distance between sources (m)"
-    ),
-    bottom: Bottom = Bottom.ellipsis,
-    r: float = typer.Option(28.0, "-r", help="Radius of the bottom circle. (m)"),
-    obstacle: bool = typer.Option(False, "--obstacle"),
-    outfile: str = typer.Option(
-        "./plot.png", "-o", help="Output file to save figure to."
-    ),
-    in_file: str = typer.Option(
-        "./beams.npy", "-i", help="input file to load recordings"
-    ),
-):
-    """Initialize the sonar class."""
-    s = Sonar(
-        size_x,
-        size_y,
-        f0,
-        v_env,
-        ns,
-        posx,
-        posy,
-        bottom,
-        source_distance,
-        obstacle=obstacle,
-        r=r,
+def sonar_picture():
+    domain_size = (60, 30)
+    v_env = 1.5
+    ns = 128
+    source_distance = 0.002
+    f0 = 100
+    space_order = 8
+    spatial_dist = round(v_env / f0 / 3, 3)
+    dt = spatial_dist / 20
+    angles = [30, 45, 60, 75, 90, 105, 120, 135, 150]
+    obstacle = True
+    v_wall = 5.64
+    v_obj = 3.24
+    domain_dims = (
+        round(domain_size[0] / spatial_dist),
+        round(domain_size[1] / spatial_dist),
     )
-    with open(in_file, "rb") as fin:
-        angles = np.load(fin)
-        recordings = np.load(fin)
-    s.parse_and_plot(angles, recordings)
-    plt.savefig(outfile)
+    vp = np.full(domain_dims, v_env, dtype=np.float32)
+    r_obs = vp.shape[0] / 20
+    a, b = vp.shape[0] / 4, vp.shape[1] - r_obs
+    y, x = np.ogrid[-a : vp.shape[0] - a, -b : vp.shape[1] - b]
+    vp[x * x + y * y <= r_obs * r_obs] = v_obj
+    nx = domain_dims[0]
+    nz = domain_dims[1]
+    wall = round(nx * 0.02)
+    offs = round(wall / 2)
+    a = round((nx - wall) / 2)
+    b = round((nz - wall) / 2)
+    offs = round(wall / 2)
+    x = np.arange(0, vp.shape[0])
+    y = np.arange(0, vp.shape[1])
+    if obstacle:
+        r = vp.shape[0] / 100
+        ox = np.arange(offs, 2 * a + offs + 1, 2 * a / 50)
+        oy = np.sqrt(1 - (ox - a - offs) ** 2 / a**2) * b + offs + b
+        for oxx, oyy in tqdm.tqdm(zip(ox, oy)):
+            mask = (y[np.newaxis, :] - oyy) ** 2 + (
+                x[:, np.newaxis] - oxx
+            ) ** 2 < r**2
+            vp[mask] = v_wall
+    mask = (y[np.newaxis, :] - offs - b) ** 2 / b**2 + (
+        x[:, np.newaxis] - offs - a
+    ) ** 2 / a**2 > 1
+    vp[mask] = v_wall
+    vp[offs:-offs, :b] = v_env
+    sonars = {
+        a: Sonar(
+            domain_size,
+            f0,
+            v_env,
+            vp,
+            space_order=space_order,
+            dt=dt,
+            spatial_dist=spatial_dist,
+        )
+        for a in angles
+    }
+    for _, v in sonars.items():
+        v.set_source()
+        v.finalize()
+    ideal_signal = sonars[45].src.signal_packet
+    recordings = {
+        a: run_beam(
+            sonars[a].src,
+            sonars[a].rec,
+            sonars[a].op,
+            sonars[a].u,
+            sonars[a].source_distance,
+            sonars[a].time_range,
+            sonars[a].model.critical_dt,
+            a,
+            v_env,
+        )
+        for a in angles
+    }
 
-
-@app.command()
-def snaps(
-    size_x: int = typer.Option(60, "-x", help="Size in x direction. (m)"),
-    size_y: int = typer.Option(30, "-y", help="Size in y direction. (m)"),
-    f0: float = typer.Option(5, "-f", help="Center frequency of the signal. (kHz)"),
-    v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
-    ns: int = typer.Option(128, "-n", help="Number of sources."),
-    posx: float = typer.Option(
-        0.5, "-px", help="Position of the source in x direction. (relative)"
-    ),
-    posy: float = typer.Option(
-        0.0, "-py", help="Position of the source in y direction. (relative)"
-    ),
-    source_distance: float = typer.Option(
-        0.2, "-d", help="Distance between sources (m)"
-    ),
-    bottom: Bottom = Bottom.ellipsis,
-    obstacle: bool = typer.Option(False, "--obstacle"),
-    alpha: float = typer.Option(80, "-a", help="Angle of the beam"),
-    snaps_rate: float = typer.Option(0.1, "-s", help="Time between snapshots (ms)"),
-    outfile: str = typer.Option(
-        "./beam_tmp.mp4", "-o", help="Output file to save video to."
-    ),
-):
-    """Initialize the sonar class."""
-    s = Sonar(
-        size_x,
-        size_y,
-        f0,
-        v_env,
-        ns,
-        posx,
-        posy,
-        bottom,
-        source_distance,
-        snaps_rate,
-        obstacle=obstacle,
+    cords = np.zeros((np.size(angles), 2))
+    for a, v in recordings.items():
+        coordinates = np.zeros((128, 2))
+        for i in range(128):
+            start_time = np.argmax(recordings[a][:5000, i])
+            correlate = np.correlate(recordings[a][5000:, i], ideal_signal, mode="same")
+            peak = 5000 + correlate.argmax()
+            distance = (peak - start_time) * sonars[a].model.critical_dt * v_env / 2
+            rec_coords = sonars[a].rec.coordinates.data[i]
+            coordinates[i, 0] = rec_coords[0] - distance * np.cos(np.deg2rad(a))
+            coordinates[i, 1] = rec_coords[1] + distance * np.sin(np.deg2rad(a))
+            cords[a // 15 - 2, :] = np.mean(coordinates, axis=0)
+    compare_velocity_to_measure(
+        sonars[45].model,
+        cords,
+        sonars[45].src.coordinates.data,
+        sonars[45].rec.coordinates.data,
     )
-    s.run_angles(np.arange(alpha, alpha + 1))
-    plot_snapshot_and_signal(s.usave.data, s.rec.data, s.model, outfile)
 
 
 @app.callback()
