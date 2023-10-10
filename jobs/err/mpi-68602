@@ -1,0 +1,109 @@
+0it [00:00, ?it/s]0it [00:00, ?it/s]1it [00:14, 15.00s/it]1it [00:15, 15.16s/it]2it [00:29, 14.99s/it]2it [00:30, 15.10s/it]3it [00:44, 14.99s/it]3it [00:45, 15.08s/it]4it [01:00, 15.31s/it]4it [01:01, 15.37s/it]5it [01:16, 15.30s/it]5it [01:16, 15.28s/it]6it [01:31, 15.40s/it]6it [01:31, 15.41s/it]7it [01:47, 15.45s/it]7it [01:47, 15.48s/it]8it [02:02, 15.44s/it]8it [02:03, 15.52s/it]9it [02:17, 15.37s/it]9it [02:18, 15.53s/it]10it [02:33, 15.39s/it]10it [02:34, 15.57s/it]11it [02:48, 15.37s/it]11it [02:49, 15.50s/it]12it [03:04, 15.38s/it]12it [03:05, 15.55s/it]13it [03:19, 15.29s/it]13it [03:20, 15.50s/it]14it [03:34, 15.31s/it]14it [03:36, 15.65s/it]15it [03:49, 15.29s/it]15it [03:51, 15.50s/it]16it [04:05, 15.38s/it]16it [04:08, 15.78s/it]17it [04:20, 15.41s/it]17it [04:23, 15.62s/it]18it [04:36, 15.57s/it]18it [04:40, 15.91s/it]19it [04:52, 15.52s/it]19it [04:55, 15.71s/it]20it [05:08, 15.67s/it]20it [05:11, 15.69s/it]21it [05:23, 15.54s/it]21it [05:26, 15.55s/it]22it [05:39, 15.62s/it]22it [05:42, 15.71s/it]23it [05:54, 15.57s/it]23it [05:57, 15.57s/it]24it [06:10, 15.65s/it]24it [06:13, 15.73s/it]25it [06:25, 15.59s/it]25it [06:28, 15.60s/it]26it [06:41, 15.73s/it]26it [06:45, 15.75s/it]27it [06:57, 15.65s/it]27it [07:00, 15.61s/it]28it [07:13, 15.70s/it]28it [07:16, 15.66s/it]29it [07:28, 15.57s/it]29it [07:31, 15.54s/it]30it [07:44, 15.66s/it]30it [07:47, 15.82s/it]31it [07:59, 15.58s/it]31it [08:03, 15.64s/it]32it [08:15, 15.66s/it]32it [08:18, 15.65s/it]33it [08:30, 15.54s/it]33it [08:33, 15.53s/it]34it [08:46, 15.57s/it]34it [08:50, 15.69s/it]35it [09:01, 15.47s/it]35it [09:05, 15.54s/it]36it [09:17, 15.58s/it]36it [09:21, 15.67s/it]37it [09:33, 15.54s/it]37it [09:36, 15.50s/it]38it [09:48, 15.60s/it]38it [09:51, 15.52s/it]39it [10:04, 15.56s/it]39it [10:07, 15.44s/it]40it [10:20, 15.68s/it]40it [10:23, 15.68s/it]41it [10:35, 15.61s/it]41it [10:38, 15.56s/it]42it [10:51, 15.68s/it]42it [10:54, 15.70s/it]43it [11:06, 15.61s/it]43it [11:09, 15.57s/it]44it [11:22, 15.72s/it]44it [11:26, 15.73s/it]45it [11:38, 15.64s/it]45it [11:41, 15.59s/it]46it [11:54, 15.75s/it]46it [11:57, 15.74s/it]47it [12:09, 15.66s/it]47it [12:12, 15.61s/it]48it [12:25, 15.75s/it]48it [12:28, 15.76s/it]49it [12:41, 15.66s/it]49it [12:44, 15.61s/it]50it [12:57, 15.75s/it]50it [13:00, 15.86s/it]51it [13:12, 15.58s/it]51it [13:12, 15.54s/it]
+51it [13:15, 15.63s/it]51it [13:15, 15.60s/it]
+Operator `initdamp` generated in 0.54 s
+  * lowering.IET: 0.24 s (45.0 %)
+     * specializing.IET: 0.17 s (31.9 %)
+  * lowering.Clusters: 0.21 s (39.4 %)
+     * specializing.Clusters: 0.13 s (24.4 %)
+Flops reduction after symbolic optimization: [72 --> 72]
+Operator `initdamp` generated in 0.54 s
+  * lowering.IET: 0.25 s (46.4 %)
+     * specializing.IET: 0.17 s (31.6 %)
+  * lowering.Clusters: 0.21 s (39.0 %)
+     * specializing.Clusters: 0.13 s (24.2 %)
+Flops reduction after symbolic optimization: [72 --> 72]
+AutoTuner: cannot perform autotuning with 0 time loops; skipping
+mpicxx -g -fPIC -std=c++11 -gpu=pinned -mp -acc:gpu -fast -shared /tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.cpp -lm -o /tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.so
+AutoTuner: cannot perform autotuning with 0 time loops; skipping
+Operator `initdamp` jit-compiled `/tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.cpp` in 8.00 s with `NvidiaCompiler`
+Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.cpp` in 6.93 s from jit-cache
+Operator `initdamp` ran in 9.44 s
+Operator `initdamp` ran in 9.44 s
+Global performance: [OI=0.22, 0.60 GFlops/s]
+Local performance:
+Global performance: [OI=0.22, 0.60 GFlops/s]
+  * section0[rank0]<> ran in 0.02 s 
+Local performance:
+  * section0[rank1]<> ran in 0.02 s 
+  * section0[rank0]<> ran in 0.02 s 
+  * section0[rank1]<> ran in 0.02 s 
+  * section1[rank0]<2540> ran in 0.01 s [OI=0.88, 1.37 GFlops/s, 0.00 GPts/s]
+  * section1[rank0]<2540> ran in 0.01 s [OI=0.88, 1.37 GFlops/s, 0.00 GPts/s]
+  * section2[rank0]<2540,35080> ran in 0.01 s [OI=0.69, 510.23 GFlops/s, 0.00 GPts/s]
+  * section2[rank0]<2540,35080> ran in 0.01 s [OI=0.69, 510.23 GFlops/s, 0.00 GPts/s]
+  * section3[rank1]<2540> ran in 0.01 s [OI=0.88, 1.49 GFlops/s, 0.00 GPts/s]
+  * section4[rank1]<2540,35080> ran in 0.01 s [OI=0.69, 507.32 GFlops/s, 0.00 GPts/s]
+  * section3[rank1]<2540> ran in 0.01 s [OI=0.88, 1.49 GFlops/s, 0.00 GPts/s]
+  * section5[rank0]<2540> ran in 0.01 s [OI=0.88, 1.78 GFlops/s, 0.00 GPts/s]
+  * section4[rank1]<2540,35080> ran in 0.01 s [OI=0.69, 507.32 GFlops/s, 0.00 GPts/s]
+  * section5[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
+  * section6[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 495.73 GFlops/s, 0.00 GPts/s]
+  * section5[rank0]<2540> ran in 0.01 s [OI=0.88, 1.78 GFlops/s, 0.00 GPts/s]
+  * section6[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 496.00 GFlops/s, 0.00 GPts/s]
+  * section7[rank0]<2540> ran in 0.01 s [OI=0.88, 1.78 GFlops/s, 0.00 GPts/s]
+  * section7[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
+  * section5[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
+  * section8[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 494.39 GFlops/s, 0.00 GPts/s]
+  * section8[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 494.39 GFlops/s, 0.00 GPts/s]
+  * section6[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 495.73 GFlops/s, 0.00 GPts/s]
+Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
+  * section6[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 496.00 GFlops/s, 0.00 GPts/s]
+  * section7[rank0]<2540> ran in 0.01 s [OI=0.88, 1.78 GFlops/s, 0.00 GPts/s]
+  * section7[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
+  * section8[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 494.39 GFlops/s, 0.00 GPts/s]
+  * section8[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 494.39 GFlops/s, 0.00 GPts/s]
+Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
+Allocating host memory for vp(32556, 35096) [8.5 GB]
+Allocating host memory for vp(32556, 35096) [8.5 GB]
+Allocating host memory for src_coords(64, 2) [1 KB]
+Allocating host memory for src_coords(64, 2) [1 KB]
+Allocating host memory for src(1231372, 64) [601 MB]
+Allocating host memory for src(1231372, 64) [601 MB]
+Allocating host memory for rec_coords(64, 2) [1 KB]
+Allocating host memory for rec_coords(64, 2) [1 KB]
+Operator `Kernel` generated in 2.40 s
+  * lowering.Clusters: 0.91 s (38.1 %)
+  * lowering.IET: 0.87 s (36.4 %)
+     * specializing.IET: 0.67 s (28.1 %)
+  * lowering.Expressions: 0.53 s (22.2 %)
+Flops reduction after symbolic optimization: [92 --> 40]
+Operator `Kernel` generated in 2.42 s
+  * lowering.Clusters: 0.92 s (38.1 %)
+  * lowering.IET: 0.89 s (36.9 %)
+     * specializing.IET: 0.68 s (28.2 %)
+  * lowering.Expressions: 0.53 s (22.0 %)
+Flops reduction after symbolic optimization: [92 --> 40]
+Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
+Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
+Simulation took 8.816829442977905 seconds
+Allocating host memory for u(3, 32556, 35096) [25.5 GB]
+Simulation took 8.818655252456665 seconds
+Allocating host memory for u(3, 32556, 35096) [25.5 GB]
+Allocating host memory for rec(1231372, 64) [601 MB]
+Allocating host memory for rec(1231372, 64) [601 MB]
+Traceback (most recent call last):
+  File "/home/hajta2/sonar/sonar-FWI/jobs/test-mpi.py", line 62, in <module>
+    sonar.op(time=sonar.time_range.num - 2, dt=dt)
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 753, in __call__
+    return self.apply(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 819, in apply
+    args = self.arguments(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 660, in arguments
+    args = self._prepare_arguments(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 551, in _prepare_arguments
+    for k, v in p._arg_values(**kwargs).items():
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/types/sparse.py", line 288, in _arg_values
+    values = self._arg_defaults(alias=self).reduce_all()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/types/sparse.py", line 261, in _arg_defaults
+    for k, v in self._dist_scatter().items():
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/types/sparse.py", line 702, in _dist_scatter
+    scattered = np.empty(shape=rshape, dtype=self.dtype)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+numpy.core._exceptions._ArrayMemoryError: Unable to allocate 1.17 GiB for an array with shape (128, 1231372) and data type float64
+slurmstepd: error: *** JOB 68602 ON lanczos CANCELLED AT 2023-10-10T09:19:54 ***
