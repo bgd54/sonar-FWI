@@ -5,7 +5,7 @@
 ```bash
 mkdir miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./miniconda3/miniconda.sh
-bash ~/miniconda3/miniconda.sh -b -u -p ./miniconda3
+bash ./miniconda3/miniconda.sh -b -u -p ./miniconda3
 ./miniconda3/bin/conda init bash
 ```
 
@@ -27,11 +27,13 @@ cd devito
 pip3 install -r requirements.txt
 pip3 install -r requirements-mpi.txt
 pip3 install -r requirements-testing.txt
-pip3 install devito
+pip3 install devito matplotlib tqdm typer
 ```
 
 ## Run an Example
 
 ```bash
+export OMPI_CC=nvc
+export OMPI_CXX=nvc++
 DEVITO_MPI=1 DEVITO_LANGUAGE=openacc DEVITO_LOGGING=DEBUG DEVITO_PLATFORM=nvidiaX DEVITO_ARCH=nvc mpirun -np 2 python3 ./examples/seismic/acoustic/acoustic_example.py
 ```
