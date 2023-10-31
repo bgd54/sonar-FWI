@@ -263,66 +263,6 @@ def run_beam(
     return rec.data
 
 
-def run_beam(
-    src,
-    rec,
-    op,
-    u,
-    source_distance: float,
-    time_range,
-    dt: float,
-    alpha: float,
-    v_env: float,
-    comm,
-    rank: int,
-    size: int,
-):
-    """
-    Run a beam simulation, used for testing a single SineSource.
-
-    Args:
-        model (Model): Model to run the simulation on.
-        src (SineSource): Source to use.
-        rec (Receiver): Receiver to use.
-        op (Operator): Operator to use.
-        u (TimeFunction): TimeFunction to use.
-        source_distance (float): Distance between sources.
-        time_range (TimeAxis): TimeAxis to use.
-        dt (float): Timestep of the simulation.
-        alpha (float): Angle of the beam.
-        v_env (float): Velocity of the sound in the medium.
-
-    Returns:
-        tuple[npt.NDArray, float]: Recorded signal and the maximum latency.
-    """
-    start_time = time.time()
-    ns = src.coordinates.data.shape[0]
-    if alpha <= 90:
-        max_latency = (
-            np.cos(np.deg2rad(alpha)) * ((ns - 1) * source_distance / v_env) / dt
-        )
-    elif alpha > 90:
-        max_latency = np.cos(np.deg2rad(alpha)) * (source_distance / v_env) / dt
-
-    all_data = comm.gather(src.data, root=0)
-
-    if rank == 0:
-        full_data = np.concatenate(all_data, axis=1)
-        for i in range(ns):
-            latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / v_env)
-            src.data[:, i] = np.roll(src.data[:, i], int(latency / dt + max_latency))
-        divided_data = np.array_split(full_data, size, axis=1)
-    else:
-        divided_data = None
-
-    new_data = comm.scatter(divided_data, root=0)
-    np.copyto(src.data, new_data)
-    u.data.fill(0)
-    op(time=time_range.num - 2, dt=dt)
-    print(f"Simulation took {time.time() - start_time} seconds")
-    return rec.data
-
-
 def calculate_coordinates(
     rec_pos,
     angle=[65],

@@ -46,7 +46,7 @@ class Sonar:
         self.spatial_dist = (
             spatial_dist
             if spatial_dist is not None
-            else round(v_water / self.f0 / 3, 3)
+            else round(v_water / self.f0 / 3, 6)
         )
         self.ns = ns
         self.source_distance = source_distance
