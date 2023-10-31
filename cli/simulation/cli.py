@@ -3,6 +3,7 @@ import typer
 import tqdm
 import math
 import matplotlib.pyplot as plt
+from mpi4py import MPI
 
 from simulation.plotting import (
     PlotType,
@@ -77,6 +78,9 @@ def run_single_freq_ellipse(
     output: str = typer.Option(
         "./recorded_signal.npy", "-o", help="output file to save recorded signal"
     ),
+    mpi: bool = typer.Option(
+        False, "-m", help="Change the output saving when OpenMPI is used"
+    ),
 ):
     """Initialize the sonar class and run the simulation with 1 frequency."""
     sonar = Sonar(
@@ -101,8 +105,16 @@ def run_single_freq_ellipse(
         alpha,
         v_env,
     )
-    with open(output, "wb") as f:
-        np.save(f, recording)
+    if mpi:
+        rank = MPI.COMM_WORLD.Get_rank()
+        all_recording = MPI.COMM_WORLD.gather(recording, root=0)
+        if rank == 0:
+            all_recording = np.concatenate(all_recording, axis=1)
+            with open(output, "wb") as f:
+                np.save(f, all_recording)
+    else:
+        with open(output, "wb") as f:
+            np.save(f, all_recording)
 
 
 @app.command()
