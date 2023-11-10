@@ -127,8 +127,10 @@ class Sonar:
             )
         else:
             assert src is not None and rec is not None
-            self.src = copy.deepcopy(src)
-            self.rec = copy.deepcopy(rec)
+            self.src = src
+            self.rec = rec
+            self.src.data = np.copy(src.data)
+            self.rec.data = np.copy(rec.data)
 
     def finalize(
         self,
