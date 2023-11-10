@@ -127,10 +127,10 @@ class Sonar:
             )
         else:
             assert src is not None and rec is not None
-            self.src = custom_deepcopy_waveletsource(src)
-            self.rec = custom_deepcopy_receiver(rec)
+            self.src = self.custom_deepcopy_waveletsource(src)
+            self.rec = self.custom_deepcopy_receiver(rec)
 
-    def custom_deepcopy_waveletsource(source):
+    def custom_deepcopy_waveletsource(self, source):
         # Extract the necessary arguments for initializing a new WaveletSource
         required_args = {
             "name": source.name,
@@ -146,7 +146,7 @@ class Sonar:
 
         return new_source
 
-    def custom_deepcopy_receiver(receiver):
+    def custom_deepcopy_receiver(self, receiver):
         # Extract the necessary arguments for initializing a new Receiver
         required_args = {
             "name": receiver.name,
