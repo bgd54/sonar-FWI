@@ -86,21 +86,19 @@ class Sonar:
         self.rec = None
         self.op = None
 
-    def set_source(
-        self,
-        src: WaveletSource = None,
-        rec: Receiver = None,
+    def set_source_and_receiver(
+        self, src_class=None, src_args=None, rec_class=None, rec_args=None
     ) -> None:
         """
-        Set the source and receiver for the simulation. If no source and receiver is given, use SineSource as default.
+        Set the source for the simulation using class name and arguments. Similar for receiver.
 
         Args:
-            src (WaveletSource): Source object.
-            rec (Receiver): Receiver object.
-            source_distance (float): Distance between sources.
-            ns (int): Number of sources.
+            src_class: Class of the source.
+            src_args: Arguments for the source class.
+            rec_class: Class of the receiver.
+            rec_args: Arguments for the receiver class.
         """
-        if src is None and rec is None:
+        if src_class is None and rec_class is None:
             assert self.source_distance is not None and self.ns is not None
             cy = (self.ns - 1) / 2 * self.source_distance
             src_coord = np.array(
@@ -126,9 +124,9 @@ class Sonar:
                 coordinates=src_coord,
             )
         else:
-            assert src is not None and rec is not None
-            self.src = copy.deepcopy(src)
-            self.rec = copy.deepcopy(rec)
+            assert src_class is not None and rec_class is not None
+            self.src = src_class(**src_args) if src_args else src_class()
+            self.rec = rec_class(**rec_args) if rec_args else rec_class()
 
     def finalize(
         self,
