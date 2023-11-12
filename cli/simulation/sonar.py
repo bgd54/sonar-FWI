@@ -5,12 +5,22 @@ import copy
 
 import numpy as np
 import numpy.typing as npt
-from typing import Optional, Tuple, Union
+from typing import Optional, Dict, Tuple, Union, Any
 from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
 from examples.seismic import Model, TimeAxis, Receiver, WaveletSource
 
 from simulation import plotting, utils
 from simulation.sources import SineSource, MultiFrequencySource, GaborSource
+
+SOURCE_CLASS_MAP = {
+    "SineSource": SineSource,
+    "GaborSource": GaborSource,
+    "MultiFrequencySource": MultiFrequencySource,
+}
+
+RECEIVER_CLASS_MAP = {
+    "Receiver": Receiver,
+}
 
 
 class Sonar:
@@ -86,19 +96,19 @@ class Sonar:
         self.rec = None
         self.op = None
 
-    def set_source_and_receiver(
-        self, src_class=None, src_args=None, rec_class=None, rec_args=None
+    def set_source(
+        self,
+        src: Union[None, str, WaveletSource] = None,
+        src_args: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
-        Set the source for the simulation using class name and arguments. Similar for receiver.
+        Set the source for the simulation.
 
-        Args:
-            src_class: Class of the source.
-            src_args: Arguments for the source class.
-            rec_class: Class of the receiver.
-            rec_args: Arguments for the receiver class.
+            Args:
+                source: Either a string representing the class name, an instance of a source class, or None.
+                source_args: Dictionary of arguments for the source class, used if a class name is provided.
         """
-        if src_class is None and rec_class is None:
+        if src is None:
             assert self.source_distance is not None and self.ns is not None
             cy = (self.ns - 1) / 2 * self.source_distance
             src_coord = np.array(
@@ -116,17 +126,53 @@ class Sonar:
                 time_range=self.time_range,
                 coordinates_data=src_coord,
             )
+        elif isinstance(src, str):
+            src_class = SOURCE_CLASS_MAP[src]
+            self.src = src_class(**src_args) if src_args else src_class()
+        elif isinstance(src, WaveletSource):
+            self.src = copy.deepcopy(src)
+        else:
+            raise ValueError(
+                "Invalid source type. Must be a string or a WaveletSource."
+            )
+
+    def set_receiver(
+        self,
+        rec: Union[None, str, Receiver] = None,
+        rec_args: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Set the receiver for the simulation.
+
+        Args:
+            rec: Either a string representing the class name, an instance of a receiver class, or None.
+            rec_args: Dictionary of arguments for the receiver class, used if a class name is provided.
+        """
+
+        if rec is None:
+            assert self.source_distance is not None and self.ns is not None
+            cy = (self.ns - 1) / 2 * self.source_distance
+            rec_coord = np.array(
+                [(self.domain_size[0] - self.source_distance * self.ns) / 2, cy]
+            ) + utils.positions_line(
+                stop_x=self.ns * self.source_distance,
+                posy=self.source_distance,
+                n=self.ns,
+            )
             self.rec = Receiver(
                 name="rec",
                 grid=self.model.grid,
                 time_range=self.time_range,
                 npoint=self.ns,
-                coordinates=src_coord,
+                coordinates=rec_coord,
             )
-        else:
-            assert src_class is not None and rec_class is not None
-            self.src = src_class(**src_args) if src_args else src_class()
+        elif isinstance(rec, str):
+            rec_class = RECEIVER_CLASS_MAP[rec]
             self.rec = rec_class(**rec_args) if rec_args else rec_class()
+        elif isinstance(rec, Receiver):
+            self.rec = copy.deepcopy(rec)
+        else:
+            raise ValueError("Invalid receiver type. Must be a string or a Receiver.")
 
     def finalize(
         self,
