@@ -3,6 +3,7 @@ import time
 import numpy as np
 import numpy.typing as npt
 
+from mpi4py import MPI
 from enum import Enum
 from dataclasses import dataclass
 
@@ -253,7 +254,9 @@ def run_beam(
         max_latency = np.cos(np.deg2rad(alpha)) * (source_distance / v_env) / dt
     for i in range(ns):
         latency = -np.cos(np.deg2rad(alpha)) * (i * source_distance / v_env)
-        src.data[:, i] = np.roll(src.data[:, i], int(latency / dt + max_latency))
+        src.data[:, i] = np.roll(
+            np.array(src.data[:, i]), int(latency / dt + max_latency)
+        )
     u.data.fill(0)
     op(time=time_range.num - 2, dt=dt)
     print(f"Simulation took {time.time() - start_time} seconds")
