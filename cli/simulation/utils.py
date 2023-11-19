@@ -227,7 +227,7 @@ def run_beam(
     v_env: float,
 ):
     """
-    Run a beam simulation, used for testing a single SineSource.
+    Run a beam simulation, used for testing a single SineSource. #TODO: single??
 
     Args:
         model (Model): Model to run the simulation on.

@@ -3,3 +3,7 @@ devito
 numpy
 matplotlib
 scipy
+
+tqdm
+pytest
+mpi4py

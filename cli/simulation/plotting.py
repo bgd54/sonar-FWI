@@ -171,6 +171,7 @@ def plot_velocity(model, source=None, receiver=None, colorbar=True, cmap="jet"):
     )
     plt.xlabel("X position (m)")
     plt.ylabel("Depth (m)")
+    plt.title("Velocity profile + sources & receivers")
 
     # Plot source points, if provided
     if receiver is not None:
