@@ -1,7 +1,7 @@
 """This module provides the sonar class for the water tank project."""
 import math
-import tqdm
 import copy
+import time
 
 import numpy as np
 import numpy.typing as npt
@@ -219,3 +219,33 @@ class Sonar:
         self.op = Operator(
             [stencil] + save_stencil + src_term + rec_term, subs=self.model.spacing_map
         )
+
+    def run_beam(self, alpha: float) -> None:
+        """Run beam simulation.
+
+        Args:
+            alpha (float): Angle of the beam.l.
+        """
+        start_time = time.time()
+        if alpha <= 90:
+            max_latency = (
+                np.cos(np.deg2rad(alpha))
+                * ((self.ns - 1) * self.source_distance / self.v_env)
+                / self.dt
+            )
+        elif alpha > 90:
+            max_latency = (
+                np.cos(np.deg2rad(alpha))
+                * (self.source_distance / self.v_env)
+                / self.dt
+            )
+        for i in range(self.ns):
+            latency = -np.cos(np.deg2rad(alpha)) * (
+                i * self.source_distance / self.v_env
+            )
+            self.src.data[:, i] = np.roll(
+                np.array(self.src.data[:, i]), int(latency / self.dt + max_latency)
+            )
+        self.u.data.fill(0)
+        self.op(time=self.time_range.num - 2, dt=self.dt)
+        print(f"Simulation took {time.time() - start_time} seconds")
