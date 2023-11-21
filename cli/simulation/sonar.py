@@ -130,14 +130,12 @@ class Sonar:
         elif isinstance(src, str):
             src_class = SOURCE_CLASS_MAP[src]
             self.src = src_class(**src_args) if src_args else src_class()
-        elif isinstance(src, WaveletSource):
-            self.src = copy.deepcopy(src)
         else:
             raise ValueError(
                 "Invalid source type. Must be a string or a WaveletSource."
             )
 
-        self.src_data = self.src.data
+        self.src_data = copy.deepcopy(self.src.data[:, 0])
 
     def set_receiver(
         self,
@@ -172,8 +170,6 @@ class Sonar:
         elif isinstance(rec, str):
             rec_class = RECEIVER_CLASS_MAP[rec]
             self.rec = rec_class(**rec_args) if rec_args else rec_class()
-        elif isinstance(rec, Receiver):
-            self.rec = copy.deepcopy(rec)
         else:
             raise ValueError("Invalid receiver type. Must be a string or a Receiver.")
 
@@ -229,7 +225,8 @@ class Sonar:
         Args:
             alpha (float): Angle of the beam.l.
         """
-        self.src.data[:, :] = self.src_data[:, :]
+        for i in range(self.ns):
+            self.src.data[:, i] = self.src_data
         self.rec.data.fill(0)
         start_time = time.time()
         if alpha <= 90:
