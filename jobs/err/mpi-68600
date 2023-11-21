@@ -1,91 +1,0 @@
-0it [00:00, ?it/s]0it [00:00, ?it/s]1it [00:01,  1.75s/it]1it [00:01,  1.75s/it]2it [00:03,  1.74s/it]2it [00:03,  1.75s/it]3it [00:05,  1.74s/it]3it [00:05,  1.76s/it]4it [00:06,  1.73s/it]4it [00:07,  1.76s/it]5it [00:08,  1.72s/it]5it [00:08,  1.76s/it]6it [00:10,  1.69s/it]6it [00:10,  1.77s/it]7it [00:11,  1.66s/it]7it [00:12,  1.77s/it]8it [00:13,  1.62s/it]8it [00:14,  1.73s/it]9it [00:14,  1.59s/it]9it [00:15,  1.69s/it]10it [00:16,  1.56s/it]10it [00:17,  1.66s/it]11it [00:17,  1.55s/it]11it [00:18,  1.62s/it]12it [00:19,  1.55s/it]12it [00:20,  1.60s/it]13it [00:21,  1.55s/it]13it [00:21,  1.58s/it]14it [00:22,  1.54s/it]14it [00:23,  1.57s/it]15it [00:24,  1.55s/it]15it [00:24,  1.56s/it]16it [00:25,  1.54s/it]16it [00:26,  1.57s/it]17it [00:27,  1.55s/it]17it [00:28,  1.55s/it]18it [00:28,  1.55s/it]18it [00:29,  1.55s/it]19it [00:30,  1.55s/it]19it [00:31,  1.55s/it]20it [00:31,  1.55s/it]20it [00:32,  1.55s/it]21it [00:33,  1.55s/it]21it [00:34,  1.55s/it]22it [00:34,  1.55s/it]22it [00:35,  1.55s/it]23it [00:36,  1.55s/it]23it [00:37,  1.55s/it]24it [00:38,  1.55s/it]24it [00:38,  1.55s/it]25it [00:39,  1.55s/it]25it [00:40,  1.55s/it]26it [00:41,  1.55s/it]26it [00:41,  1.55s/it]27it [00:42,  1.55s/it]27it [00:43,  1.55s/it]28it [00:44,  1.55s/it]28it [00:45,  1.55s/it]29it [00:45,  1.55s/it]29it [00:46,  1.55s/it]30it [00:47,  1.55s/it]30it [00:48,  1.55s/it]31it [00:48,  1.55s/it]31it [00:49,  1.55s/it]32it [00:50,  1.55s/it]32it [00:51,  1.55s/it]33it [00:52,  1.55s/it]33it [00:52,  1.55s/it]34it [00:53,  1.55s/it]34it [00:54,  1.55s/it]35it [00:55,  1.55s/it]35it [00:55,  1.55s/it]36it [00:56,  1.55s/it]36it [00:57,  1.55s/it]37it [00:58,  1.55s/it]37it [00:58,  1.55s/it]38it [00:59,  1.55s/it]38it [01:00,  1.55s/it]39it [01:01,  1.55s/it]39it [01:02,  1.55s/it]40it [01:02,  1.55s/it]40it [01:03,  1.55s/it]41it [01:04,  1.55s/it]41it [01:05,  1.55s/it]42it [01:05,  1.55s/it]42it [01:06,  1.55s/it]43it [01:07,  1.55s/it]43it [01:08,  1.55s/it]44it [01:09,  1.55s/it]44it [01:09,  1.55s/it]45it [01:10,  1.55s/it]45it [01:11,  1.55s/it]46it [01:12,  1.55s/it]46it [01:12,  1.55s/it]47it [01:13,  1.55s/it]47it [01:14,  1.55s/it]48it [01:15,  1.55s/it]48it [01:16,  1.55s/it]49it [01:16,  1.55s/it]49it [01:17,  1.55s/it]50it [01:18,  1.55s/it]50it [01:19,  1.55s/it]51it [01:19,  1.55s/it]51it [01:19,  1.57s/it]
-51it [01:20,  1.54s/it]51it [01:20,  1.58s/it]
-Operator `initdamp` generated in 0.53 s
-  * lowering.IET: 0.24 s (45.4 %)
-     * specializing.IET: 0.17 s (32.2 %)
-  * lowering.Clusters: 0.21 s (39.7 %)
-     * specializing.Clusters: 0.13 s (24.6 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-Operator `initdamp` generated in 0.54 s
-  * lowering.IET: 0.24 s (45.0 %)
-     * specializing.IET: 0.17 s (31.9 %)
-  * lowering.Clusters: 0.21 s (39.4 %)
-     * specializing.Clusters: 0.13 s (24.4 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/f3721f1ddeee28f3c70095be6bf5dfc0c8f8e30a.cpp` in 0.12 s from jit-cache
-Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/f3721f1ddeee28f3c70095be6bf5dfc0c8f8e30a.cpp` in 0.20 s from jit-cache
-Operator `initdamp` ran in 2.80 s
-Operator `initdamp` ran in 2.80 s
-Global performance: [OI=0.22, 0.50 GFlops/s]
-Global performance: [OI=0.22, 0.50 GFlops/s]
-Local performance:
-Local performance:
-  * section0[rank0]<> ran in 0.01 s 
-  * section0[rank0]<> ran in 0.01 s 
-  * section0[rank1]<> ran in 0.01 s 
-  * section1[rank0]<1270> ran in 0.01 s [OI=0.88, 0.75 GFlops/s, 0.00 GPts/s]
-  * section0[rank1]<> ran in 0.01 s 
-  * section2[rank0]<1270,17540> ran in 0.01 s [OI=0.69, 516.95 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<1270> ran in 0.01 s [OI=0.88, 0.75 GFlops/s, 0.00 GPts/s]
-  * section1[rank0]<1270> ran in 0.01 s [OI=0.88, 0.75 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<1270,17540> ran in 0.01 s [OI=0.69, 518.05 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<1270> ran in 0.01 s [OI=0.88, 1.12 GFlops/s, 0.00 GPts/s]
-  * section2[rank0]<1270,17540> ran in 0.01 s [OI=0.69, 516.95 GFlops/s, 0.00 GPts/s]
-  * section5[rank1]<1270> ran in 0.01 s [OI=0.88, 0.99 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<1270> ran in 0.01 s [OI=0.88, 0.75 GFlops/s, 0.00 GPts/s]
-  * section6[rank0]<16270,1270> ran in 0.01 s [OI=0.69, 510.77 GFlops/s, 0.00 GPts/s]
-  * section6[rank1]<16270,1270> ran in 0.01 s [OI=0.69, 513.08 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<1270,17540> ran in 0.01 s [OI=0.69, 518.05 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<1270> ran in 0.01 s [OI=0.88, 1.12 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<1270> ran in 0.01 s [OI=0.88, 0.89 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<1270> ran in 0.01 s [OI=0.88, 1.12 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<16270,1270> ran in 0.01 s [OI=0.69, 506.22 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<16270,1270> ran in 0.01 s [OI=0.69, 508.49 GFlops/s, 0.00 GPts/s]
-  * section5[rank1]<1270> ran in 0.01 s [OI=0.88, 0.99 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-  * section6[rank0]<16270,1270> ran in 0.01 s [OI=0.69, 510.77 GFlops/s, 0.00 GPts/s]
-  * section6[rank1]<16270,1270> ran in 0.01 s [OI=0.69, 513.08 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<1270> ran in 0.01 s [OI=0.88, 1.12 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<1270> ran in 0.01 s [OI=0.88, 0.89 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<16270,1270> ran in 0.01 s [OI=0.69, 506.22 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<16270,1270> ran in 0.01 s [OI=0.69, 508.49 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-Allocating host memory for vp(16286, 17556) [2.1 GB]
-Allocating host memory for vp(16286, 17556) [2.1 GB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src(615687, 64) [301 MB]
-Allocating host memory for src(615687, 64) [301 MB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Operator `Kernel` generated in 2.36 s
-  * lowering.Clusters: 0.90 s (38.3 %)
-  * lowering.IET: 0.87 s (37.0 %)
-     * specializing.IET: 0.67 s (28.5 %)
-  * lowering.Expressions: 0.51 s (21.7 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Operator `Kernel` generated in 2.43 s
-  * lowering.Clusters: 0.95 s (39.1 %)
-  * lowering.IET: 0.89 s (36.7 %)
-     * specializing.IET: 0.68 s (28.0 %)
-  * lowering.Expressions: 0.52 s (21.5 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Simulation took 4.312377214431763 seconds
-Allocating host memory for u(3, 16286, 17556) [6.4 GB]
-Simulation took 4.313750267028809 seconds
-Allocating host memory for u(3, 16286, 17556) [6.4 GB]
-Allocating host memory for rec(615687, 64) [301 MB]
-Allocating host memory for rec(615687, 64) [301 MB]
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-AutoTuner: could not perform any runs
-Operator `Kernel` fetched `/tmp/devito-jitcache-uid543800090/3ab3ec2226c9b32ffc1e2ba4287db0ab7ea9197e.cpp` in 0.08 s from jit-cache
-AutoTuner: could not perform any runs
-Operator `Kernel` fetched `/tmp/devito-jitcache-uid543800090/3ab3ec2226c9b32ffc1e2ba4287db0ab7ea9197e.cpp` in 0.08 s from jit-cache
-slurmstepd: error: *** JOB 68600 ON lanczos CANCELLED AT 2023-10-10T09:03:29 ***

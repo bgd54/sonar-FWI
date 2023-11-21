@@ -26,6 +26,11 @@ def _handle_mpi_communication(model, source=None, receiver=None, result_coords=N
         comm = model.grid.distributor.comm
         rank = model.grid.distributor.myrank
         vp_data = comm.gather(model.vp.data, root=0)
+
+        for x in [source, receiver, result_coords]:
+            if x is not None:
+                x = comm.gather(x, root=0)
+
         result_coords = comm.gather(result_coords, root=0)
         source = comm.gather(source, root=0)
         receiver = comm.gather(receiver, root=0)
@@ -33,9 +38,9 @@ def _handle_mpi_communication(model, source=None, receiver=None, result_coords=N
             return None, None, None, None, False
 
         vp_data = _concat_matrix(vp_data, nprocs)
-        source = np.concatenate(source, axis=0)
-        receiver = np.concatenate(receiver, axis=0)
-        result_coords = np.concatenate(result_coords, axis=0)
+        for x in [source, receiver, result_coords]:
+            if x is not None:
+                x = np.concatenate(x, axis=0)
     else:
         vp_data = model.vp.data
     return vp_data, source, receiver, result_coords, True
