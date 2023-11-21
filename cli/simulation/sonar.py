@@ -1,7 +1,7 @@
 """This module provides the sonar class for the water tank project."""
 import math
-import tqdm
 import copy
+import time
 
 import numpy as np
 import numpy.typing as npt
@@ -95,6 +95,7 @@ class Sonar:
         self.src = None
         self.rec = None
         self.op = None
+        self.src_data = None
 
     def set_source(
         self,
@@ -129,12 +130,12 @@ class Sonar:
         elif isinstance(src, str):
             src_class = SOURCE_CLASS_MAP[src]
             self.src = src_class(**src_args) if src_args else src_class()
-        elif isinstance(src, WaveletSource):
-            self.src = copy.deepcopy(src)
         else:
             raise ValueError(
                 "Invalid source type. Must be a string or a WaveletSource."
             )
+
+        self.src_data = copy.deepcopy(self.src.data[:, 0])
 
     def set_receiver(
         self,
@@ -169,8 +170,6 @@ class Sonar:
         elif isinstance(rec, str):
             rec_class = RECEIVER_CLASS_MAP[rec]
             self.rec = rec_class(**rec_args) if rec_args else rec_class()
-        elif isinstance(rec, Receiver):
-            self.rec = copy.deepcopy(rec)
         else:
             raise ValueError("Invalid receiver type. Must be a string or a Receiver.")
 
@@ -219,3 +218,36 @@ class Sonar:
         self.op = Operator(
             [stencil] + save_stencil + src_term + rec_term, subs=self.model.spacing_map
         )
+
+    def run_beam(self, alpha: float) -> None:
+        """Run beam simulation.
+
+        Args:
+            alpha (float): Angle of the beam.l.
+        """
+        for i in range(self.ns):
+            self.src.data[:, i] = self.src_data
+        self.rec.data.fill(0)
+        start_time = time.time()
+        if alpha <= 90:
+            max_latency = (
+                np.cos(np.deg2rad(alpha))
+                * ((self.ns - 1) * self.source_distance / self.v_env)
+                / self.dt
+            )
+        elif alpha > 90:
+            max_latency = (
+                np.cos(np.deg2rad(alpha))
+                * (self.source_distance / self.v_env)
+                / self.dt
+            )
+        for i in range(self.ns):
+            latency = -np.cos(np.deg2rad(alpha)) * (
+                i * self.source_distance / self.v_env
+            )
+            self.src.data[:, i] = np.roll(
+                np.array(self.src.data[:, i]), int(latency / self.dt + max_latency)
+            )
+        self.u.data.fill(0)
+        self.op(time=self.time_range.num - 2, dt=self.dt)
+        print(f"Simulation took {time.time() - start_time} seconds")

@@ -1,162 +1,0 @@
-Matplotlib created a temporary cache directory at /tmp/matplotlib-nigy1sxj because the default path (/home/hajta2/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
-Matplotlib created a temporary cache directory at /tmp/matplotlib-qqt4zr_x because the default path (/home/hajta2/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
-0it [00:00, ?it/s]0it [00:00, ?it/s]1it [00:03,  3.31s/it]1it [00:03,  3.31s/it]2it [00:06,  3.30s/it]2it [00:06,  3.31s/it]3it [00:09,  3.30s/it]3it [00:09,  3.31s/it]4it [00:13,  3.30s/it]4it [00:13,  3.31s/it]5it [00:16,  3.30s/it]5it [00:16,  3.31s/it]6it [00:19,  3.30s/it]6it [00:19,  3.31s/it]7it [00:23,  3.30s/it]7it [00:23,  3.31s/it]8it [00:26,  3.30s/it]8it [00:26,  3.31s/it]9it [00:29,  3.30s/it]9it [00:29,  3.31s/it]10it [00:33,  3.30s/it]10it [00:33,  3.31s/it]11it [00:36,  3.30s/it]11it [00:36,  3.31s/it]12it [00:39,  3.30s/it]12it [00:39,  3.31s/it]13it [00:42,  3.30s/it]13it [00:43,  3.31s/it]14it [00:46,  3.30s/it]14it [00:46,  3.31s/it]15it [00:49,  3.30s/it]15it [00:49,  3.31s/it]16it [00:52,  3.30s/it]16it [00:52,  3.31s/it]17it [00:56,  3.30s/it]17it [00:56,  3.31s/it]18it [00:59,  3.30s/it]18it [00:59,  3.31s/it]19it [01:02,  3.30s/it]19it [01:02,  3.31s/it]20it [01:06,  3.30s/it]20it [01:06,  3.31s/it]21it [01:09,  3.30s/it]21it [01:09,  3.30s/it]22it [01:12,  3.30s/it]22it [01:12,  3.30s/it]23it [01:15,  3.30s/it]23it [01:16,  3.30s/it]24it [01:19,  3.29s/it]24it [01:19,  3.30s/it]25it [01:22,  3.29s/it]25it [01:22,  3.30s/it]26it [01:25,  3.30s/it]26it [01:25,  3.30s/it]27it [01:29,  3.30s/it]27it [01:29,  3.30s/it]28it [01:32,  3.30s/it]28it [01:32,  3.30s/it]29it [01:35,  3.29s/it]29it [01:35,  3.30s/it]30it [01:38,  3.30s/it]30it [01:39,  3.30s/it]31it [01:42,  3.29s/it]31it [01:42,  3.30s/it]32it [01:45,  3.29s/it]32it [01:45,  3.30s/it]33it [01:48,  3.29s/it]33it [01:49,  3.30s/it]34it [01:52,  3.29s/it]34it [01:52,  3.29s/it]35it [01:55,  3.29s/it]35it [01:55,  3.29s/it]36it [01:58,  3.29s/it]36it [01:58,  3.29s/it]37it [02:01,  3.29s/it]37it [02:02,  3.29s/it]38it [02:05,  3.29s/it]38it [02:05,  3.29s/it]39it [02:08,  3.29s/it]39it [02:08,  3.29s/it]40it [02:11,  3.29s/it]40it [02:12,  3.29s/it]41it [02:15,  3.29s/it]41it [02:15,  3.29s/it]42it [02:18,  3.29s/it]42it [02:18,  3.29s/it]43it [02:21,  3.29s/it]43it [02:21,  3.29s/it]44it [02:24,  3.29s/it]44it [02:25,  3.29s/it]45it [02:28,  3.29s/it]45it [02:28,  3.29s/it]46it [02:31,  3.29s/it]46it [02:31,  3.29s/it]47it [02:34,  3.29s/it]47it [02:35,  3.29s/it]48it [02:38,  3.29s/it]48it [02:38,  3.29s/it]49it [02:41,  3.29s/it]49it [02:41,  3.29s/it]50it [02:44,  3.29s/it]50it [02:44,  3.29s/it]51it [02:48,  3.29s/it]51it [02:48,  3.29s/it]
---------------------------------------------------------------------------
-[[51294,1],1]: A high-performance Open MPI point-to-point messaging module
-was unable to find any relevant network interfaces:
-
-Module: OpenFabrics (openib)
-  Host: renyi
-
-Another transport will be used instead, although this may result in
-lower performance.
-
-NOTE: You can disable this warning by setting the MCA parameter
-btl_base_warn_component_unused to 0.
---------------------------------------------------------------------------
-51it [02:48,  3.29s/it]51it [02:48,  3.30s/it]
-Operator `initdamp` generated in 0.40 s
-  * lowering.IET: 0.18 s (46.2 %)
-     * specializing.IET: 0.13 s (33.4 %)
-  * lowering.Clusters: 0.15 s (38.5 %)
-     * specializing.Clusters: 0.09 s (23.1 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-Operator `initdamp` generated in 0.40 s
-  * lowering.IET: 0.18 s (45.7 %)
-     * specializing.IET: 0.13 s (33.0 %)
-  * lowering.Clusters: 0.15 s (38.1 %)
-     * specializing.Clusters: 0.10 s (25.4 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-[renyi.cl.itk.ppke.hu:1975325] 1 more process has sent help message help-mpi-btl-base.txt / btl:no-nics
-[renyi.cl.itk.ppke.hu:1975325] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
-Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.cpp` in 0.11 s from jit-cache
-Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/41eb648500209837b784318e491cb2694afb7a40.cpp` in 0.16 s from jit-cache
-Operator `initdamp` ran in 6.88 s
-Operator `initdamp` ran in 6.88 s
-Global performance: [OI=0.22, 0.82 GFlops/s]
-Global performance: [OI=0.22, 0.82 GFlops/s]
-Local performance:
-Local performance:
-  * section0[rank0]<> ran in 0.01 s 
-  * section0[rank0]<> ran in 0.01 s 
-  * section0[rank1]<> ran in 0.01 s 
-  * section1[rank0]<2540> ran in 0.01 s [OI=0.88, 1.49 GFlops/s, 0.00 GPts/s]
-  * section0[rank1]<> ran in 0.01 s 
-  * section2[rank0]<2540,35080> ran in 0.01 s [OI=0.69, 725.49 GFlops/s, 0.00 GPts/s]
-  * section1[rank0]<2540> ran in 0.01 s [OI=0.88, 1.49 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<2540,35080> ran in 0.01 s [OI=0.69, 724.42 GFlops/s, 0.00 GPts/s]
-  * section2[rank0]<2540,35080> ran in 0.01 s [OI=0.69, 725.49 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<2540> ran in 0.01 s [OI=0.88, 2.23 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section5[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section6[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 725.60 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<2540,35080> ran in 0.01 s [OI=0.69, 724.42 GFlops/s, 0.00 GPts/s]
-  * section6[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 724.44 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<2540> ran in 0.01 s [OI=0.88, 2.23 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<2540> ran in 0.01 s [OI=0.88, 2.23 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section5[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 725.60 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 721.57 GFlops/s, 0.00 GPts/s]
-  * section6[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 725.60 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-  * section6[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 724.44 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<2540> ran in 0.01 s [OI=0.88, 2.23 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<2540> ran in 0.01 s [OI=0.88, 1.98 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<32540,2540> ran in 0.01 s [OI=0.69, 725.60 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<32540,2540> ran in 0.01 s [OI=0.69, 721.57 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-Allocating host memory for vp(32556, 35096) [8.5 GB]
-Allocating host memory for vp(32556, 35096) [8.5 GB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src(1231372, 64) [601 MB]
-Allocating host memory for src(1231372, 64) [601 MB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Operator `Kernel` generated in 1.83 s
-  * lowering.Clusters: 0.73 s (40.1 %)
-  * lowering.IET: 0.69 s (37.9 %)
-     * specializing.IET: 0.53 s (29.1 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Operator `Kernel` generated in 1.85 s
-  * lowering.Clusters: 0.75 s (40.8 %)
-  * lowering.IET: 0.69 s (37.5 %)
-     * specializing.IET: 0.53 s (28.8 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Simulation took 4.683419227600098 seconds
-Allocating host memory for u(3, 32556, 35096) [25.5 GB]
-Simulation took 4.6853508949279785 seconds
-Allocating host memory for u(3, 32556, 35096) [25.5 GB]
-Allocating host memory for rec(1231372, 64) [601 MB]
-Allocating host memory for rec(1231372, 64) [601 MB]
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-Traceback (most recent call last):
-  File "/home/hajta2/sonar/sonar-FWI/jobs/test-mpi.py", line 62, in <module>
-    sonar.op(time=sonar.time_range.num - 2, dt=dt)
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 753, in __call__
-    return self.apply(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 819, in apply
-    args = self.arguments(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 660, in arguments
-    args = self._prepare_arguments(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 627, in _prepare_arguments
-    args.update(self._autotune(args, autotune or configuration['autotuning']))
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/operator.py", line 161, in _autotune
-    args, summary = autotune(self, args, level, mode)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/autotuning.py", line 49, in autotune
-    copies = {k: writes[k]._C_as_ndarray(v).copy()
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/autotuning.py", line 49, in <dictcomp>
-    copies = {k: writes[k]._C_as_ndarray(v).copy()
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-numpy.core._exceptions._ArrayMemoryError: Unable to allocate 25.5 GiB for an array with shape (3, 32556, 35096) and data type float64
-Traceback (most recent call last):
-  File "/home/hajta2/sonar/sonar-FWI/jobs/test-mpi.py", line 62, in <module>
-    sonar.op(time=sonar.time_range.num - 2, dt=dt)
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 753, in __call__
-    return self.apply(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 819, in apply
-    args = self.arguments(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 660, in arguments
-    args = self._prepare_arguments(**kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/operator/operator.py", line 627, in _prepare_arguments
-    args.update(self._autotune(args, autotune or configuration['autotuning']))
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/operator.py", line 161, in _autotune
-    args, summary = autotune(self, args, level, mode)
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/autotuning.py", line 49, in autotune
-    copies = {k: writes[k]._C_as_ndarray(v).copy()
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/hajta2/software/miniconda3/envs/devito/lib/python3.11/site-packages/devito/core/autotuning.py", line 49, in <dictcomp>
-    copies = {k: writes[k]._C_as_ndarray(v).copy()
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-numpy.core._exceptions._ArrayMemoryError: Unable to allocate 25.5 GiB for an array with shape (3, 32556, 35096) and data type float64
---------------------------------------------------------------------------
-Primary job  terminated normally, but 1 process returned
-a non-zero exit code. Per user-direction, the job has been aborted.
---------------------------------------------------------------------------
---------------------------------------------------------------------------
-mpirun detected that one or more processes exited with non-zero status, thus causing
-the job to be terminated. The first process to do so was:
-
-  Process name: [[51294,1],0]
-  Exit code:    1
---------------------------------------------------------------------------

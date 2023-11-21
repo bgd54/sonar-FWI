@@ -1,108 +1,0 @@
-0it [00:00, ?it/s]0it [00:00, ?it/s]1it [00:00,  3.34it/s]1it [00:00,  3.32it/s]2it [00:00,  3.49it/s]2it [00:00,  3.45it/s]3it [00:00,  3.54it/s]3it [00:00,  3.49it/s]4it [00:01,  3.57it/s]4it [00:01,  3.51it/s]5it [00:01,  3.59it/s]5it [00:01,  3.52it/s]6it [00:01,  3.60it/s]6it [00:01,  3.53it/s]7it [00:01,  3.61it/s]7it [00:01,  3.54it/s]8it [00:02,  3.61it/s]8it [00:02,  3.54it/s]9it [00:02,  3.61it/s]9it [00:02,  3.53it/s]10it [00:02,  3.61it/s]10it [00:02,  3.54it/s]11it [00:03,  3.61it/s]11it [00:03,  3.54it/s]12it [00:03,  3.62it/s]12it [00:03,  3.54it/s]13it [00:03,  3.62it/s]13it [00:03,  3.55it/s]14it [00:03,  3.63it/s]14it [00:03,  3.55it/s]15it [00:04,  3.63it/s]15it [00:04,  3.55it/s]16it [00:04,  3.64it/s]16it [00:04,  3.56it/s]17it [00:04,  3.64it/s]17it [00:04,  3.56it/s]18it [00:04,  3.64it/s]18it [00:05,  3.56it/s]19it [00:05,  3.64it/s]19it [00:05,  3.56it/s]20it [00:05,  3.64it/s]20it [00:05,  3.56it/s]21it [00:05,  3.64it/s]21it [00:05,  3.56it/s]22it [00:06,  3.64it/s]22it [00:06,  3.56it/s]23it [00:06,  3.64it/s]23it [00:06,  3.56it/s]24it [00:06,  3.64it/s]24it [00:06,  3.56it/s]25it [00:06,  3.63it/s]25it [00:07,  3.55it/s]26it [00:07,  3.64it/s]26it [00:07,  3.56it/s]27it [00:07,  3.64it/s]27it [00:07,  3.55it/s]28it [00:07,  3.63it/s]28it [00:07,  3.54it/s]29it [00:08,  3.62it/s]29it [00:08,  3.54it/s]30it [00:08,  3.63it/s]30it [00:08,  3.55it/s]31it [00:08,  3.63it/s]31it [00:08,  3.55it/s]32it [00:08,  3.63it/s]32it [00:09,  3.56it/s]33it [00:09,  3.64it/s]33it [00:09,  3.56it/s]34it [00:09,  3.65it/s]34it [00:09,  3.57it/s]35it [00:09,  3.65it/s]35it [00:09,  3.56it/s]36it [00:09,  3.63it/s]36it [00:10,  3.53it/s]37it [00:10,  3.60it/s]37it [00:10,  3.52it/s]38it [00:10,  3.60it/s]38it [00:10,  3.52it/s]39it [00:10,  3.59it/s]39it [00:11,  3.49it/s]40it [00:11,  3.58it/s]40it [00:11,  3.49it/s]41it [00:11,  3.57it/s]41it [00:11,  3.48it/s]42it [00:11,  3.56it/s]42it [00:11,  3.48it/s]43it [00:11,  3.56it/s]43it [00:12,  3.47it/s]44it [00:12,  3.55it/s]44it [00:12,  3.47it/s]45it [00:12,  3.55it/s]45it [00:12,  3.47it/s]46it [00:12,  3.55it/s]47it [00:13,  3.55it/s]46it [00:13,  3.47it/s]48it [00:13,  3.55it/s]47it [00:13,  3.47it/s]49it [00:13,  3.54it/s]48it [00:13,  3.47it/s]50it [00:13,  3.54it/s]49it [00:13,  3.47it/s]51it [00:14,  3.54it/s]51it [00:14,  3.60it/s]
-50it [00:14,  3.47it/s]51it [00:14,  3.48it/s]51it [00:14,  3.52it/s]
-Operator `initdamp` generated in 0.54 s
-  * lowering.IET: 0.24 s (44.8 %)
-     * specializing.IET: 0.17 s (31.8 %)
-  * lowering.Clusters: 0.21 s (39.2 %)
-     * specializing.Clusters: 0.13 s (24.3 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-Operator `initdamp` generated in 0.54 s
-  * lowering.IET: 0.25 s (46.7 %)
-     * specializing.IET: 0.17 s (31.7 %)
-  * lowering.Clusters: 0.21 s (39.2 %)
-     * specializing.Clusters: 0.13 s (24.3 %)
-Flops reduction after symbolic optimization: [72 --> 72]
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-AutoTuner: cannot perform autotuning with 0 time loops; skipping
-mpicxx -g -fPIC -std=c++11 -gpu=pinned -mp -acc:gpu -fast -shared /tmp/devito-jitcache-uid543800090/1eebde15cef7ea6ca860fea0ee3b045b9b5a2f9c.cpp -lm -o /tmp/devito-jitcache-uid543800090/1eebde15cef7ea6ca860fea0ee3b045b9b5a2f9c.so
-Operator `initdamp` jit-compiled `/tmp/devito-jitcache-uid543800090/1eebde15cef7ea6ca860fea0ee3b045b9b5a2f9c.cpp` in 11.47 s with `NvidiaCompiler`
-Operator `initdamp` fetched `/tmp/devito-jitcache-uid543800090/1eebde15cef7ea6ca860fea0ee3b045b9b5a2f9c.cpp` in 11.55 s from jit-cache
-Operator `initdamp` ran in 1.98 s
-Operator `initdamp` ran in 1.98 s
-Global performance: [OI=0.22, 0.12 GFlops/s]
-Global performance: [OI=0.22, 0.12 GFlops/s]
-Local performance:
-Local performance:
-  * section0[rank0]<> ran in 0.01 s 
-  * section0[rank1]<> ran in 0.01 s 
-  * section0[rank0]<> ran in 0.01 s 
-  * section1[rank0]<508> ran in 0.01 s [OI=0.88, 0.33 GFlops/s, 0.00 GPts/s]
-  * section0[rank1]<> ran in 0.01 s 
-  * section2[rank0]<508,7016> ran in 0.01 s [OI=0.69, 445.52 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<508> ran in 0.01 s [OI=0.88, 0.30 GFlops/s, 0.00 GPts/s]
-  * section1[rank0]<508> ran in 0.01 s [OI=0.88, 0.33 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<508,7016> ran in 0.01 s [OI=0.69, 440.52 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<508> ran in 0.01 s [OI=0.88, 0.40 GFlops/s, 0.00 GPts/s]
-  * section2[rank0]<508,7016> ran in 0.01 s [OI=0.69, 445.52 GFlops/s, 0.00 GPts/s]
-  * section5[rank1]<508> ran in 0.01 s [OI=0.88, 0.40 GFlops/s, 0.00 GPts/s]
-  * section6[rank0]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section3[rank1]<508> ran in 0.01 s [OI=0.88, 0.30 GFlops/s, 0.00 GPts/s]
-  * section6[rank1]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<508> ran in 0.01 s [OI=0.88, 0.45 GFlops/s, 0.00 GPts/s]
-  * section4[rank1]<508,7016> ran in 0.01 s [OI=0.69, 440.52 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<508> ran in 0.01 s [OI=0.88, 0.36 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section5[rank0]<508> ran in 0.01 s [OI=0.88, 0.40 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<6508,508> ran in 0.01 s [OI=0.69, 448.98 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-  * section5[rank1]<508> ran in 0.01 s [OI=0.88, 0.40 GFlops/s, 0.00 GPts/s]
-  * section6[rank0]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section6[rank1]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section7[rank0]<508> ran in 0.01 s [OI=0.88, 0.45 GFlops/s, 0.00 GPts/s]
-  * section7[rank1]<508> ran in 0.01 s [OI=0.88, 0.36 GFlops/s, 0.00 GPts/s]
-  * section8[rank0]<6508,508> ran in 0.01 s [OI=0.69, 454.59 GFlops/s, 0.00 GPts/s]
-  * section8[rank1]<6508,508> ran in 0.01 s [OI=0.69, 448.98 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-Allocating host memory for vp(6524, 7032) [350 MB]
-Allocating host memory for vp(6524, 7032) [350 MB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src_coords(64, 2) [1 KB]
-Allocating host memory for src(246276, 64) [120 MB]
-Allocating host memory for src(246276, 64) [120 MB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Allocating host memory for rec_coords(64, 2) [1 KB]
-Operator `Kernel` generated in 2.57 s
-  * lowering.Clusters: 0.92 s (35.9 %)
-  * lowering.IET: 0.88 s (34.3 %)
-     * specializing.IET: 0.68 s (26.5 %)
-  * lowering.Expressions: 0.69 s (26.9 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Operator `Kernel` generated in 2.60 s
-  * lowering.Clusters: 0.93 s (35.8 %)
-  * lowering.IET: 0.90 s (34.7 %)
-     * specializing.IET: 0.69 s (26.6 %)
-  * lowering.Expressions: 0.69 s (26.6 %)
-Flops reduction after symbolic optimization: [92 --> 40]
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Pickling of `Data` objects is not supported. Casting to `numpy.ndarray`
-Simulation took 1.640286922454834 seconds
-Allocating host memory for u(3, 6524, 7032) [1.0 GB]
-Simulation took 1.6416218280792236 seconds
-Allocating host memory for u(3, 6524, 7032) [1.0 GB]
-Allocating host memory for rec(246276, 64) [120 MB]
-Allocating host memory for rec(246276, 64) [120 MB]
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_rec_m=0 and p_rec_M=-1 might cause no iterations along Dimension p_rec
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-p_src_m=0 and p_src_M=-1 might cause no iterations along Dimension p_src
-AutoTuner: could not perform any runs
-mpicxx -g -fPIC -std=c++11 -gpu=pinned -mp -acc:gpu -fast -shared /tmp/devito-jitcache-uid543800090/1949bb3c5e06b255e7410abf3c3161d6bfb44051.cpp -lm -o /tmp/devito-jitcache-uid543800090/1949bb3c5e06b255e7410abf3c3161d6bfb44051.so
-AutoTuner: could not perform any runs
-Operator `Kernel` jit-compiled `/tmp/devito-jitcache-uid543800090/1949bb3c5e06b255e7410abf3c3161d6bfb44051.cpp` in 2.83 s with `NvidiaCompiler`
-Operator `Kernel` fetched `/tmp/devito-jitcache-uid543800090/1949bb3c5e06b255e7410abf3c3161d6bfb44051.cpp` in 2.74 s from jit-cache
-Operator `Kernel` ran in 1843.17 s
-Operator `Kernel` ran in 1843.17 s
-Global performance: [OI=1.16, 451.48 GFlops/s, 12.21 GPts/s]
-Global performance: [OI=1.16, 451.48 GFlops/s, 12.21 GPts/s]
-Local performance:
-Local performance:
-  * section0[rank0]<246274,6508,7016> ran in 1835.58 s [OI=1.16, 226.67 GFlops/s, 6.13 GPts/s]
-  * section0[rank0]<246274,6508,7016> ran in 1835.58 s [OI=1.16, 226.67 GFlops/s, 6.13 GPts/s]
-  * section0[rank1]<246274,6508,7016> ran in 1842.51 s [OI=1.16, 225.82 GFlops/s, 6.11 GPts/s]
-  * section1[rank0]<<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>> ran in 3.69 s [OI=8.44, 2.32 GFlops/s, 0.01 GPts/s]
-  * section0[rank1]<246274,6508,7016> ran in 1842.51 s [OI=1.16, 225.82 GFlops/s, 6.11 GPts/s]
-  * section2[rank0]<<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>> ran in 3.18 s [OI=10.75, 2.57 GFlops/s, 0.00 GPts/s]
-  * section1[rank0]<<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>> ran in 3.69 s [OI=8.44, 2.32 GFlops/s, 0.01 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
-  * section2[rank0]<<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>,<246274,128>> ran in 3.18 s [OI=10.75, 2.57 GFlops/s, 0.00 GPts/s]
-Performance[mode=advanced] arguments: {'deviceid': -1, 'devicerm': 1}
