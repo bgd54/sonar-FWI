@@ -95,6 +95,7 @@ class Sonar:
         self.src = None
         self.rec = None
         self.op = None
+        self.src_data = None
 
     def set_source(
         self,
@@ -135,6 +136,8 @@ class Sonar:
             raise ValueError(
                 "Invalid source type. Must be a string or a WaveletSource."
             )
+
+        self.src_data = self.src.data
 
     def set_receiver(
         self,
@@ -226,6 +229,8 @@ class Sonar:
         Args:
             alpha (float): Angle of the beam.l.
         """
+        self.src.data[:, :] = self.src_data[:, :]
+        self.rec.data.fill(0)
         start_time = time.time()
         if alpha <= 90:
             max_latency = (
