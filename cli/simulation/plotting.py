@@ -101,7 +101,7 @@ def plot_velocity(
     )
     plt.xlabel("X position (m)")
     plt.ylabel("Depth (m)")
-    if result_coords is not None:
+    if result_coords is None:
         plt.title("Velocity profile + sources & receivers")
     else:
         plt.title("Velocity profile + sources & receivers + result")
