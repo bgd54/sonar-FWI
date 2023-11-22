@@ -135,8 +135,6 @@ class Sonar:
                 "Invalid source type. Must be a string or a WaveletSource."
             )
 
-        self.src_data = copy.deepcopy(self.src.data[:, 0])
-
     def set_receiver(
         self,
         rec: Union[None, str, Receiver] = None,
@@ -226,7 +224,7 @@ class Sonar:
             alpha (float): Angle of the beam.l.
         """
         for i in range(self.ns):
-            self.src.data[:, i] = self.src_data
+            self.src.data[:, i] = self.src.wavelet
         self.rec.data.fill(0)
         start_time = time.time()
         if alpha <= 90:
