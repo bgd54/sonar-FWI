@@ -54,7 +54,7 @@ class GaborSource(WaveletSource):
     @property
     def signal_packet(self):
         assert self.f0 is not None
-        return self.wavelet[:800]
+        return self.wavelet[: np.argmax(self.wavelet) * 2]
 
 
 class MultiFrequencySource(WaveletSource):
