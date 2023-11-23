@@ -6,16 +6,13 @@ import matplotlib.pyplot as plt
 from mpi4py import MPI
 
 from simulation.plotting import (
-    PlotType,
-    plot_snapshot_and_signal,
-    compare_velocity_to_measure,
+    plot_velocity,
 )
 from simulation.sonar import Sonar
 from simulation.utils import (
     FlatBottom,
     EllipsisBottom,
     CircleBottom,
-    run_beam,
 )
 
 app = typer.Typer()
@@ -29,7 +26,7 @@ def run_single_freq_circ(
     v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     source_distance: float = typer.Option(
-        0.002, "-d", help="Distance between sources (m)"
+        0.02, "-d", help="Distance between sources (m)"
     ),
     alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
     radius: float = typer.Option(28, "-r", help="Radius of the circle (m)"),
@@ -48,18 +45,9 @@ def run_single_freq_circ(
         ns=ns,
     )
     sonar.set_source()
+    sonar.set_receiver()
     sonar.finalize()
-    recording = run_beam(
-        sonar.src,
-        sonar.rec,
-        sonar.op,
-        sonar.u,
-        source_distance,
-        sonar.time_range,
-        sonar.model.critical_dt,
-        alpha,
-        v_env,
-    )
+    recording = sonar.run_beam(alpha)
     with open(output, "wb") as f:
         np.save(f, recording)
 
@@ -72,7 +60,7 @@ def run_single_freq_ellipse(
     v_env: float = typer.Option(1.5, "-v", help="Environment velocity. (km/s)"),
     ns: int = typer.Option(128, "-n", help="Number of sources."),
     source_distance: float = typer.Option(
-        0.002, "-d", help="Distance between sources (m)"
+        0.02, "-d", help="Distance between sources (m)"
     ),
     alpha: float = typer.Option(0, "-a", help="Angle of the beam (deg)"),
     output: str = typer.Option(
@@ -92,18 +80,11 @@ def run_single_freq_ellipse(
         ns=ns,
     )
     sonar.set_source()
+    sonar.set_receiver()
     sonar.finalize()
 
-    recording = run_beam(
-        sonar.src,
-        sonar.rec,
-        sonar.op,
-        sonar.u,
-        source_distance,
-        sonar.time_range,
-        sonar.model.critical_dt,
+    recording = sonar.run_beam(
         alpha,
-        v_env,
     )
     if mpi:
         rank = MPI.COMM_WORLD.Get_rank()
@@ -114,7 +95,7 @@ def run_single_freq_ellipse(
                 np.save(f, all_recording)
     else:
         with open(output, "wb") as f:
-            np.save(f, all_recording)
+            np.save(f, recording)
 
 
 @app.command()
@@ -177,19 +158,12 @@ def sonar_picture():
     }
     for _, v in sonars.items():
         v.set_source()
+        v.set_receiver()
         v.finalize()
     ideal_signal = sonars[45].src.signal_packet
     recordings = {
-        a: run_beam(
-            sonars[a].src,
-            sonars[a].rec,
-            sonars[a].op,
-            sonars[a].u,
-            sonars[a].source_distance,
-            sonars[a].time_range,
-            sonars[a].model.critical_dt,
+        a: sonars[a].run_beam(
             a,
-            v_env,
         )
         for a in angles
     }
@@ -205,12 +179,12 @@ def sonar_picture():
             rec_coords = sonars[a].rec.coordinates.data[i]
             coordinates[i, 0] = rec_coords[0] - distance * np.cos(np.deg2rad(a))
             coordinates[i, 1] = rec_coords[1] + distance * np.sin(np.deg2rad(a))
-            cords[a // 15 - 2, :] = np.mean(coordinates, axis=0)
-    compare_velocity_to_measure(
+        cords[a // 15 - 2, :] = np.mean(coordinates, axis=0)
+    plot_velocity(
         sonars[45].model,
-        cords,
         sonars[45].src.coordinates.data,
         sonars[45].rec.coordinates.data,
+        cords,
     )
 
 

@@ -29,16 +29,23 @@ class Sonar:
 
     Args:
         domain_size (Tuple[float, float]): Size of the domain in meters.
-        f_critical (float): Critical frequency of the signal.
-        v_water (float): Speed of sound in the water.
+        f0 (float): Critical frequency of the signal in kHz
+        v_water (float): Speed of sound in the water in km/s.
         velocity_profile (Union[npt.NDArray, utils.Bottom_type]): Velocity profile of the domain.
-        tn (float): Total time of the simulation.
+        tn (float): Total time of the simulation in milliseconds.
+        ns (int): Number of sources
+        source_distance (float): Distance between sources in meters.
+        space_order (int): Finite difference space order of the simulation.
+        time_order (int): Finite difference time order of the simulation.
+        dt (float): Time step of the simulation in milliseconds.
+        spatial_dist (float): Spatial distance between grid points in meters.
+        nbl (float): Number of absorbing boundary layers.
     """
 
     def __init__(
         self,
         domain_size: Tuple[float, float],
-        f_critical: float,
+        f0: float,
         v_water: float,
         velocity_profile: Union[npt.NDArray, utils.Bottom_type],
         ns: int = 128,
@@ -50,20 +57,20 @@ class Sonar:
         spatial_dist: Optional[float] = None,
         nbl: Optional[float] = None,
     ) -> None:
-        self.f0 = f_critical
+        self.f0 = f0
+        self.v_env = v_water
         self.space_order = space_order if space_order is not None else 8
         self.time_order = time_order if time_order is not None else 2
         self.spatial_dist = (
             spatial_dist
             if spatial_dist is not None
-            else round(v_water / self.f0 / 3, 6)
+            else round(self.v_env / self.f0 / 3, 6)
         )
         self.ns = ns
         self.source_distance = source_distance
         self.dt = dt if dt is not None else self.spatial_dist / 20
         self.nbl = nbl if nbl is not None else (ns - 1) / 2 * source_distance / self.dt
         self.domain_size = domain_size
-        self.v_env = v_water
         domain_dims = (
             round(domain_size[0] / self.spatial_dist),
             round(domain_size[1] / self.spatial_dist),
@@ -72,7 +79,7 @@ class Sonar:
             velocity_profile
             if isinstance(velocity_profile, np.ndarray)
             else utils.gen_velocity_profile(
-                velocity_profile, domain_dims, self.spatial_dist, v_water=v_water
+                velocity_profile, domain_dims, self.spatial_dist, v_water=self.v_env
             )
         )
         self.model = Model(
@@ -88,7 +95,7 @@ class Sonar:
         )
         if tn is None:
             max_distance = math.sqrt((domain_size[0] / 2) ** 2 + domain_size[1] ** 2)
-            tn = max_distance * 2 / v_water + 5
+            tn = max_distance * 2 / self.v_env + 5
         self.time_range = TimeAxis(start=0.0, stop=tn, step=self.model.critical_dt)
         self.u = None
         self.usave = None
@@ -103,7 +110,7 @@ class Sonar:
         src_args: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
-        Set the source for the simulation.
+        Set the source for the simulation. When no arguments are provided, it creates a linear array of sources, count and separateion based on the number of sources and the source distance, defined by the Sonar class.
 
             Args:
                 source: Either a string representing the class name, an instance of a source class, or None.
@@ -141,7 +148,7 @@ class Sonar:
         rec_args: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
-        Set the receiver for the simulation.
+        Set the receiver for the simulation. When no arguments are provided, it creates a linear array of receivers, cound and separateion based on the number of sources and the source distance, defined by the Sonar class.
 
         Args:
             rec: Either a string representing the class name, an instance of a receiver class, or None.
