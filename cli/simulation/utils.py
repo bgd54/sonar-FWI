@@ -104,7 +104,7 @@ def positions_line(
 
     Args:
         stop_x (float): x position of last point domain.
-        nr (int): Number of points to generate.
+        n (int): Number of points to generate.
         posy (float): Absolute depth of the points
 
     Returns:
