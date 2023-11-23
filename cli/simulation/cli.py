@@ -97,6 +97,7 @@ def run_single_freq_ellipsis(
             dt = comm.gather(sonar.model.critical_dt, root=0)
             rec_coords = comm.gather(sonar.rec.coordinates.data, root=0)
             if rank == 0:
+                rec_coords = np.concatenate(rec_coords, axis=0)
                 coords = np.zeros((np.size(angles), 2))
                 for i, (a, r) in enumerate(recordings.items()):
                     coords[i, :] = rec2coords(

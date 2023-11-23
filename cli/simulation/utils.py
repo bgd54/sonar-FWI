@@ -199,6 +199,6 @@ def rec2coords(
         peak = correlate(recording[:, i], ideal_signal, start_iter)
         distance = iters2dist(peak, dt, 1.5, start_time) / 2
         rec_coords = receiver_coords[i]
-        coordinates[i, 0] = rec_coords[0] + distance * np.cos(np.deg2rad(angle))
+        coordinates[i, 0] = rec_coords[0] - distance * np.cos(np.deg2rad(angle))
         coordinates[i, 1] = rec_coords[1] + distance * np.sin(np.deg2rad(angle))
     return np.mean(coordinates, axis=0)
