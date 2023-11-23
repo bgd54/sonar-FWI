@@ -193,11 +193,13 @@ def rec2coords(
     """
     assert recording.shape[0] > 5000 and recording.shape[1] == receiver_coords.shape[0]
     ns = recording.shape[1]
+    recording = np.flip(recording)
     coordinates = np.zeros((ns, 2))
     for i in range(ns):
         start_time = np.argmax(recording[:start_iter, i])
         peak = correlate(recording[:, i], ideal_signal, start_iter)
-        distance = iters2dist(peak - start_time, dt, start_iter=start_time) / 2
+        distance = iters2dist(peak, dt, 1.5, start_time) / 2
+        print(distance)
         rec_coords = receiver_coords[i]
         coordinates[i, 0] = rec_coords[0] + distance * np.cos(np.deg2rad(angle))
         coordinates[i, 1] = rec_coords[1] + distance * np.sin(np.deg2rad(angle))
