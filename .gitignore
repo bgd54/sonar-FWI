@@ -131,3 +131,6 @@ dmypy.json
 water_tank/snapshots
 notebooks/data/
 notebooks/output/
+jobs/err/
+jobs/out/
+jobs/sim_output/
