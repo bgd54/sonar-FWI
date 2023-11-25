@@ -1,3 +1,4 @@
+import os
 import tqdm
 import time
 import numpy as np
@@ -10,6 +11,8 @@ from dataclasses import dataclass
 from typing import Optional, Union, Tuple
 
 Float = Union[float, np.floating]
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 @dataclass
@@ -38,6 +41,39 @@ class CircleBottom:
 Bottom_type = FlatBottom | EllipsisBottom | CircleBottom
 
 
+def _put_object_in_domain(
+    vp: npt.NDArray[np.float32],
+    obj: npt.NDArray[np.float32],
+    v: float,
+    size: Tuple[int, int],
+    pos: Tuple[int, int],
+):
+    """
+    Put an object in the domain.
+
+    Args:
+        vp: Velocity profile.
+        obj: Object to put in the domain.
+        v: Velocity of the object.
+        size: Size of the domain.
+        pos: Position of the object.
+    """
+    obj_scaled = np.kron(
+        obj, np.ones((size[0] // obj.shape[0], size[1] // obj.shape[1]))
+    )
+    vp[
+        pos[0] : pos[0] + obj_scaled.shape[0], pos[1] : pos[1] + obj_scaled.shape[1]
+    ] = np.where(
+        obj_scaled == 1,
+        v,
+        vp[
+            pos[0] : pos[0] + obj_scaled.shape[0],
+            pos[1] : pos[1] + obj_scaled.shape[1],
+        ],
+    )
+    return vp
+
+
 def gen_velocity_profile(
     bottom: Bottom_type,
     domain_dims: Tuple[int, int],
@@ -47,6 +83,14 @@ def gen_velocity_profile(
 ) -> npt.NDArray[np.float32]:
     """Generate velocity profile for the simulation."""
     vp = np.full(domain_dims, v_water, dtype=np.float32)
+    print(os.getcwd())
+    boat = np.transpose(np.load(os.path.join(SCRIPT_DIR, "../models/boat.npy")))
+    rock = np.transpose(np.load(os.path.join(SCRIPT_DIR, "../models/rock.npy")))
+    submarine = np.transpose(
+        np.load(os.path.join(SCRIPT_DIR, "../models/submarine.npy"))
+    )
+    boat_size = (domain_dims[0] // 5, domain_dims[0] // 5)
+    rock_size = (domain_dims[0] // 10, domain_dims[0] // 10)
     match bottom:
         case FlatBottom(obstacle):
             y_wall = max(
@@ -81,6 +125,33 @@ def gen_velocity_profile(
                         x[:, np.newaxis] - oxx
                     ) ** 2 < r**2
                     vp[mask] = v_wall
+                vp = _put_object_in_domain(
+                    vp,
+                    boat,
+                    3.96,
+                    boat_size,
+                    (
+                        domain_dims[0] // 4 - boat_size[0],
+                        domain_dims[1] - int(boat_size[1] * 1.1),
+                    ),
+                )
+                for i in range(0, domain_dims[0], rock_size[0]):
+                    vp = _put_object_in_domain(
+                        vp,
+                        rock,
+                        5.43,
+                        rock_size,
+                        (i, domain_dims[1] - rock_size[1]),
+                    )
+                sub_pos = (domain_dims[0] // 4, domain_dims[1] // 2)
+                vp = _put_object_in_domain(
+                    vp,
+                    submarine,
+                    5,
+                    boat_size,
+                    (3 * domain_dims[0] // 4, domain_dims[1] // 2),
+                )
+
             vp[offs:-offs, :b] = v_water
         case CircleBottom(cx, cy, r):
             ox = cx / spatial_dist

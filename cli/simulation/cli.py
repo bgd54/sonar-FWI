@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import typer
@@ -78,9 +79,10 @@ def run_single_freq_ellipsis(
     sonar.set_receiver()
     sonar.finalize()
 
-    if dir[-1] == "/":
-        dir = dir[:-1]
-    Path(f"./output/ellipsis/{f0}").mkdir(parents=True, exist_ok=True)
+    if sonar.model.grid.distributor.nprocs > 1:
+        if dir[-1] == "/":
+            dir = dir[:-1]
+        os.makedirs(dir + f"/ellipsis/{f0}/ideal", exist_ok=True)
 
     sonar.save_ideal_signal(dir + f"/ellipsis/{f0}/ideal")
 
@@ -103,8 +105,8 @@ def run_single_freq_ellipsis(
                     coords[i, :] = rec2coords(
                         r, rec_coords, sonar.src.signal_packet, a, dt
                     )
-                else:
-                    coords = None
+            else:
+                coords = None
             coords = comm.bcast(coords, root=0)
             plot_velocity(
                 sonar.model,
