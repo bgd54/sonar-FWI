@@ -51,7 +51,13 @@ def _handle_mpi_communication(model, source=None, receiver=None, result_coords=N
 
 
 def plot_velocity(
-    model, source=None, receiver=None, result_coords=None, colorbar=True, cmap="jet"
+    model,
+    source=None,
+    receiver=None,
+    result_coords=None,
+    colorbar=True,
+    cmap="jet",
+    outfile=None,
 ):
     """
     Plot a two-dimensional velocity field from a seismic `Model`
@@ -125,6 +131,9 @@ def plot_velocity(
         cax = divider.append_axes("right", size="5%", pad=0.05)
         cbar = plt.colorbar(plot, cax=cax)
         cbar.set_label("Velocity (km/s)")
+
+    if outfile is not None:
+        plt.savefig(outfile, bbox_inches="tight", dpi=600, format="pdf")
     plt.show()
 
 

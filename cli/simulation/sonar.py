@@ -42,6 +42,8 @@ class Sonar:
         nbl (float): Number of absorbing boundary layers.
     """
 
+    _SONAR_MPI = False
+
     def __init__(
         self,
         domain_size: Tuple[float, float],
@@ -93,6 +95,12 @@ class Sonar:
             dt=self.dt,
             dtype=np.float64,
         )
+
+        if self.model.grid.distributor.nprocs > 1:
+            self._SONAR_MPI = True
+            self._comm = self.model.grid.distributor.comm
+            self._rank = self.model.grid.distributor.myrank
+
         if tn is None:
             max_distance = math.sqrt((domain_size[0] / 2) ** 2 + domain_size[1] ** 2)
             tn = max_distance * 2 / self.v_env + 5
@@ -102,7 +110,6 @@ class Sonar:
         self.src = None
         self.rec = None
         self.op = None
-        self.src_data = None
 
     def set_source(
         self,
@@ -177,6 +184,46 @@ class Sonar:
             self.rec = rec_class(**rec_args) if rec_args else rec_class()
         else:
             raise ValueError("Invalid receiver type. Must be a string or a Receiver.")
+
+    @property
+    def recording(self) -> npt.NDArray[np.float64]:
+        """Get the recorded signal.
+
+        Returns:
+            npt.NDArray[np.float64]: The recorded signal.
+        """
+        if self._SONAR_MPI:
+            all_recording = self._comm.gather(self.rec.data, root=0)
+            if self._rank == 0:
+                all_recording = np.concatenate(all_recording, axis=1)
+                return all_recording
+        else:
+            return copy.deepcopy(self.rec.data)
+
+    def save_ideal_signal(self, filename: str) -> None:
+        """Save the ideal signal to a file.
+
+        Args:
+            dir (None): Directory to save the file to.
+        """
+        if self._SONAR_MPI:
+            if self._rank == 0:
+                np.save(f"{filename}.npy", self.src.signal_packet)
+        else:
+            np.save(f"{filename}.npy", self.src.signal_packet)
+
+    def save_recording(self, filename: str) -> None:
+        """Save the recorded signal to a file.
+
+        Args:
+            dir (None): Directory to save the file to.
+        """
+        if self._SONAR_MPI:
+            rec = self.recording
+            if self._rank == 0:
+                np.save(f"{filename}.npy", rec)
+        else:
+            np.save(f"{filename}.npy", self.recording)
 
     def finalize(
         self,

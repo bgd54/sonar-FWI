@@ -1,3 +1,4 @@
+import os
 import tqdm
 import time
 import numpy as np
@@ -10,6 +11,8 @@ from dataclasses import dataclass
 from typing import Optional, Union, Tuple
 
 Float = Union[float, np.floating]
+
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 @dataclass
@@ -38,6 +41,39 @@ class CircleBottom:
 Bottom_type = FlatBottom | EllipsisBottom | CircleBottom
 
 
+def _put_object_in_domain(
+    vp: npt.NDArray[np.float32],
+    obj: npt.NDArray[np.float32],
+    v: float,
+    size: Tuple[int, int],
+    pos: Tuple[int, int],
+):
+    """
+    Put an object in the domain.
+
+    Args:
+        vp: Velocity profile.
+        obj: Object to put in the domain.
+        v: Velocity of the object.
+        size: Size of the domain.
+        pos: Position of the object.
+    """
+    obj_scaled = np.kron(
+        obj, np.ones((size[0] // obj.shape[0], size[1] // obj.shape[1]))
+    )
+    vp[
+        pos[0] : pos[0] + obj_scaled.shape[0], pos[1] : pos[1] + obj_scaled.shape[1]
+    ] = np.where(
+        obj_scaled == 1,
+        v,
+        vp[
+            pos[0] : pos[0] + obj_scaled.shape[0],
+            pos[1] : pos[1] + obj_scaled.shape[1],
+        ],
+    )
+    return vp
+
+
 def gen_velocity_profile(
     bottom: Bottom_type,
     domain_dims: Tuple[int, int],
@@ -47,6 +83,14 @@ def gen_velocity_profile(
 ) -> npt.NDArray[np.float32]:
     """Generate velocity profile for the simulation."""
     vp = np.full(domain_dims, v_water, dtype=np.float32)
+    print(os.getcwd())
+    boat = np.transpose(np.load(os.path.join(SCRIPT_DIR, "../models/boat.npy")))
+    rock = np.transpose(np.load(os.path.join(SCRIPT_DIR, "../models/rock.npy")))
+    submarine = np.transpose(
+        np.load(os.path.join(SCRIPT_DIR, "../models/submarine.npy"))
+    )
+    boat_size = (domain_dims[0] // 5, domain_dims[0] // 5)
+    rock_size = (domain_dims[0] // 10, domain_dims[0] // 10)
     match bottom:
         case FlatBottom(obstacle):
             y_wall = max(
@@ -81,6 +125,33 @@ def gen_velocity_profile(
                         x[:, np.newaxis] - oxx
                     ) ** 2 < r**2
                     vp[mask] = v_wall
+                vp = _put_object_in_domain(
+                    vp,
+                    boat,
+                    3.96,
+                    boat_size,
+                    (
+                        domain_dims[0] // 4 - boat_size[0],
+                        domain_dims[1] - int(boat_size[1] * 1.1),
+                    ),
+                )
+                for i in range(0, domain_dims[0], rock_size[0]):
+                    vp = _put_object_in_domain(
+                        vp,
+                        rock,
+                        5.43,
+                        rock_size,
+                        (i, domain_dims[1] - rock_size[1]),
+                    )
+                sub_pos = (domain_dims[0] // 4, domain_dims[1] // 2)
+                vp = _put_object_in_domain(
+                    vp,
+                    submarine,
+                    5,
+                    boat_size,
+                    (3 * domain_dims[0] // 4, domain_dims[1] // 2),
+                )
+
             vp[offs:-offs, :b] = v_water
         case CircleBottom(cx, cy, r):
             ox = cx / spatial_dist
@@ -136,136 +207,69 @@ def positions_half_circle(
     return res
 
 
-def num_iter_for_distance(
-    distance: float,
-    dt: float,
-    v_env: float,
-):
+def correlate(
+    recording: npt.NDArray, ideal_signal: npt.NDArray, start_iter: int = 5000
+) -> int:
     """
-    Return the number of iterations needed to travel a certain distance
+    Correlate the recording with the ideal signal and return the index of the peak.
 
     Args:
-        distance (float): Distance to travel in [m]
-        v_env (float): Environment velocity in [km/s] if dt in [ms] or [m/s] if dt in [s]
-        v_env (float): Time step in [ms] or [s]
-    """
-    return distance * 2 / v_env / dt
-
-
-def object_distance(
-    step: int,
-    dt: float,
-    v_env: float,
-):
-    """
-    Return the distance traveled by an object in a certain number of iterations
-
-    Args:
-        step (int): Number of iterations
-        dt (float): Time step in [ms] or [s]
-        v_env (float): Environment velocity in [km/s] if dt in [ms] or [m/s] if dt in [s]
-    """
-    return ((step * dt) / 2) * v_env
-
-
-def detect_echo_after(
-    recording,
-    timestep: float,
-    ideal_signal: npt.NDArray,
-    cut_ts: Optional[int] = None,
-    cut_ms: Optional[float] = None,
-):
-    """
-    Detect the echo after a certain time or timestep.
-    """
-    if cut_ts is None:
-        assert cut_ms is not None
-        cut_ts = round(cut_ms / timestep)
-    correlation = np.correlate(recording[cut_ts:], ideal_signal)
-    return cut_ts + correlation.argmax() - ideal_signal.shape[0]
-
-
-def echo_distance(
-    receiver,
-    timestep: float,
-    ideal_signal: npt.NDArray,
-    max_latency: float,
-    v_env: float,
-    cut_ms: Optional[float] = None,
-    cut_ts: Optional[int] = None,
-) -> tuple[float, float]:
-    """
-    Calculate the distance of the object from the receiver.
-
-    Args:
-        receiver (npt.NDArray): Received signal.
-        timestep (float): Timestep of the simulation.
-        signal (npt.NDArray): Original signal.
-        v_env (float): Velocity of the water.
-        cut_ms (float): Time to mask echos from.
+        recording: The recording of a single receiver to correlate with the ideal signal.
+        ideal_signal: The ideal signal.
+        start_iter: The index to start the search from.
 
     Returns:
-        tuple[float, float]: Distance of the object from the receiver and the time of the peak.
+        The index of the peak.
     """
-    if cut_ts is None:
-        assert cut_ms is not None
-        cut_ts = round(cut_ms / timestep)
-    echo = detect_echo_after(receiver, timestep, ideal_signal, cut_ms=cut_ms)
-    distance = object_distance(echo, timestep, v_env)
-    return distance, receiver[echo]
+    assert recording.shape[0] > 5000
+    correlate = np.correlate(recording[start_iter:], ideal_signal, mode="same")
+    peak = start_iter + correlate.argmax()
+    return peak
 
 
-def calculate_coordinates(
-    rec_pos,
-    angle=[65],
-    distance=[26],
-    amplitude=[2.3169e-09],
-):
+def iters2dist(
+    stop_iter: int, dt: float, v_env: float = 1500, start_iter: int = 0
+) -> float:
     """
-    Calculate the coordinates of the object.
+    Convert the index to distance.
 
     Args:
-        rec_pos (tuple[float]): Position of the receiver.
-        angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
-        distance (list[float]): Distance of the object from the receiver.
-        amplitude (list[float]): Amplitude of the signal at the receiver.
+        end_iter: The index of a time iteration.
+        dt: The time step (s).
+        v_env: The velocity of the environment (m/s).
+        start_iter: The index when the signal is sent.
 
     Returns:
-        coordinates (list[float]): Coordinates of the object.
+        The distance (m).
     """
-    if np.size(amplitude) != np.size(distance):
-        print("error, angle and distance arrays must be same length")
-        return
-    coordinates = np.zeros((len(rec_pos), np.size(angle), 2))
-    for i, pos in enumerate(rec_pos):
-        for j, alpha in enumerate(angle):
-            sx = pos[0]
-            sy = pos[1]
-            coordinates[i, j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[i, j]
-            coordinates[i, j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[i, j]
-    return coordinates
+    return (stop_iter - start_iter) * dt * v_env
 
 
-def calculate_coordinates_from_pos(
-    rec_pos: tuple[float, float],
-    angle: npt.NDArray,
-    distance: npt.NDArray,
+def rec2coords(
+    recording: npt.NDArray,
+    receiver_coords: npt.NDArray,
+    ideal_signal: npt.NDArray,
+    angle: int,
+    dt: float,
+    start_iter: int = 5000,
 ) -> npt.NDArray:
     """
-    Calculate the absolute coordinates of the object.
+    Convert the recording to coordinates.
 
     Args:
-        rec_pos (tuple[float]): Position of the receiver.
-        angle (list[float]): Angle of the sources to the water surface (0° - 180°) 90° means sources are parallel with the water surface
-        distance (list[float]): Distance of the object from the receiver.
-
-    Returns:
-        coordinates (list[float]): Coordinates of the object.
+        recording: The recording of a single receiver.
+        receiver_coords: The coordinates of the receiver.
+        angle: The angle of the beam.
+        dt: The time step (s).
     """
-    coordinates = np.zeros((np.size(angle), 2))
-    for j, alpha in enumerate(angle):
-        sx = rec_pos[0]
-        sy = rec_pos[1]
-        coordinates[j, 0] = sx - np.cos(alpha * np.pi / 180) * distance[j]
-        coordinates[j, 1] = sy + np.sin(alpha * np.pi / 180) * distance[j]
-    return coordinates
+    assert recording.shape[0] > 5000 and recording.shape[1] == receiver_coords.shape[0]
+    ns = recording.shape[1]
+    coordinates = np.zeros((ns, 2))
+    for i in range(ns):
+        start_time = np.argmax(recording[:start_iter, i])
+        peak = correlate(recording[:, i], ideal_signal, start_iter)
+        distance = iters2dist(peak, dt, 1.5, start_time) / 2
+        rec_coords = receiver_coords[i]
+        coordinates[i, 0] = rec_coords[0] - distance * np.cos(np.deg2rad(angle))
+        coordinates[i, 1] = rec_coords[1] + distance * np.sin(np.deg2rad(angle))
+    return np.mean(coordinates, axis=0)
