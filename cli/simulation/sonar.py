@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from typing import Optional, Dict, Tuple, Union, Any
 from devito import ConditionalDimension, Eq, Operator, TimeFunction, solve
-from examples.seismic import Model, TimeAxis, Receiver, WaveletSource
+from examples.seismic import Model, TimeAxis, Receiver, WaveletSource, RickerSource
 
 from simulation import plotting, utils
 from simulation.sources import SineSource, MultiFrequencySource, GaborSource
@@ -15,6 +15,7 @@ from simulation.sources import SineSource, MultiFrequencySource, GaborSource
 SOURCE_CLASS_MAP = {
     "SineSource": SineSource,
     "GaborSource": GaborSource,
+    "RickerSource": RickerSource,
     "MultiFrequencySource": MultiFrequencySource,
 }
 
